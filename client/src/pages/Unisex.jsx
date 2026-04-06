@@ -1,5 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
@@ -10,7 +10,7 @@ import Footer from "../components/footer";
 import PerfumeCard from "../components/PerfumeCard";
 import QuickViewModal from "../components/quickView";
 
-const Home = () => {
+const Unisex = () => {
   const [userName, setUserName] = useState("");
   const [loggedIn, setLoggedIn] = useState(false);
   const [selectedPerfume, setSelectedPerfume] = useState(null);
@@ -64,6 +64,10 @@ const Home = () => {
     console.log("Added to cart:", perfume.name, "Quantity:", quantity);
   };
 
+  const unisexPerfumes = Array.isArray(perfumes)
+    ? perfumes.filter((perfume) => perfume.gender === "Unisex")
+    : [];
+
   return (
     <div
       style={{
@@ -79,73 +83,50 @@ const Home = () => {
         onLogout={handleLogout}
       />
 
-      <section
-        style={{
-          textAlign: "center",
-          padding: "80px 20px 60px",
-          background: "linear-gradient(135deg, #fff1f2 0%, #fdf2f8 100%)",
-        }}
-      >
-        <h1 style={{ fontSize: "3rem", marginBottom: "16px" }}>
-          Discover Your Perfect Scent
+      <section style={{ padding: "50px 40px" }}>
+        <h1
+          style={{
+            textAlign: "center",
+            fontSize: "2.5rem",
+            marginBottom: "10px",
+          }}
+        >
+          Unisex Perfumes
         </h1>
 
         <p
           style={{
-            fontSize: "1.1rem",
+            textAlign: "center",
             color: "#6b7280",
             marginBottom: "30px",
           }}
         >
-          Find perfumes that match your personality, style, and mood.
+          Explore fragrances designed for everyone.
         </p>
 
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "15px",
-            flexWrap: "wrap",
-          }}
-        >
-          <Link to="/men">
-  <button style={darkButtonStyle}>Shop Men's</button>
-</Link>
-
-<Link to="/women">
-  <button style={lightButtonStyle}>Shop Women's</button>
-</Link>
-        </div>
-      </section>
-
-      <section style={{ padding: "50px 40px" }}>
-        <h2
-          style={{
-            textAlign: "center",
-            marginBottom: "30px",
-            fontSize: "2rem",
-          }}
-        >
-          Featured Perfumes
-        </h2>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: "25px",
-            maxWidth: "1400px",
-            margin: "0 auto",
-          }}
-        >
-          {perfumes.map((perfume) => (
-            <PerfumeCard
-              key={perfume.id}
-              perfume={perfume}
-              onQuickView={handleQuickView}
-            />
-          ))}
-        </div>
+        {unisexPerfumes.length === 0 ? (
+          <p style={{ textAlign: "center", color: "#6b7280" }}>
+            No perfumes found for this category.
+          </p>
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: "25px",
+              maxWidth: "1400px",
+              margin: "0 auto",
+            }}
+          >
+            {unisexPerfumes.map((perfume) => (
+              <PerfumeCard
+                key={perfume.id}
+                perfume={perfume}
+                onQuickView={handleQuickView}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       <Footer />
@@ -159,24 +140,4 @@ const Home = () => {
   );
 };
 
-const lightButtonStyle = {
-  padding: "10px 16px",
-  border: "1px solid #111827",
-  borderRadius: "10px",
-  backgroundColor: "white",
-  color: "#111827",
-  cursor: "pointer",
-  fontWeight: "600",
-};
-
-const darkButtonStyle = {
-  padding: "10px 16px",
-  border: "none",
-  borderRadius: "10px",
-  backgroundColor: "#111827",
-  color: "white",
-  cursor: "pointer",
-  fontWeight: "600",
-};
-
-export default Home;
+export default Unisex;
