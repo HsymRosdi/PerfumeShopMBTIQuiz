@@ -60,9 +60,6 @@ const Home = () => {
     setSelectedPerfume(null);
   };
 
-  const handleAddToCart = (perfume, quantity) => {
-    console.log("Added to cart:", perfume.name, "Quantity:", quantity);
-  };
 
   return (
     <div
@@ -153,7 +150,7 @@ const Home = () => {
       <QuickViewModal
         perfume={selectedPerfume}
         onClose={handleCloseModal}
-        onAddToCart={handleAddToCart}
+        
       />
     </div>
   );

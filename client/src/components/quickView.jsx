@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { useCart } from "../context/CartContext";
 
-const QuickViewModal = ({ perfume, onClose, onAddToCart }) => {
+const QuickViewModal = ({ perfume, onClose }) => {
   const [quantity, setQuantity] = useState(1);
+  const { addToCart } = useCart();
 
   useEffect(() => {
     if (perfume) {
@@ -22,12 +24,8 @@ const QuickViewModal = ({ perfume, onClose, onAddToCart }) => {
   };
 
   const handleAdd = () => {
-    if (onAddToCart) {
-      onAddToCart(perfume, quantity);
-    }
-    if (onClose) {
-      onClose();
-    }
+    addToCart(perfume, quantity);
+    onClose();
   };
 
   return (
@@ -39,11 +37,7 @@ const QuickViewModal = ({ perfume, onClose, onAddToCart }) => {
 
         <div style={contentStyle}>
           <div style={imageSectionStyle}>
-            <img
-              src={perfume.image}
-              alt={perfume.name}
-              style={imageStyle}
-            />
+            <img src={perfume.image} alt={perfume.name} style={imageStyle} />
           </div>
 
           <div style={detailsStyle}>
@@ -54,19 +48,16 @@ const QuickViewModal = ({ perfume, onClose, onAddToCart }) => {
             <p style={priceStyle}>£{perfume.price}</p>
 
             <div style={quantityWrapperStyle}>
-              <button onClick={decreaseQty} style={qtyButtonStyle}>
-                -
-              </button>
+              <button onClick={decreaseQty} style={qtyButtonStyle}>-</button>
               <span style={qtyTextStyle}>{quantity}</span>
-              <button onClick={increaseQty} style={qtyButtonStyle}>
-                +
-              </button>
+              <button onClick={increaseQty} style={qtyButtonStyle}>+</button>
             </div>
 
             <div style={actionButtonsStyle}>
               <button onClick={handleAdd} style={addToCartStyle}>
                 Add to Cart
               </button>
+              <button style={moreDetailsStyle}>More Details</button>
             </div>
           </div>
         </div>
