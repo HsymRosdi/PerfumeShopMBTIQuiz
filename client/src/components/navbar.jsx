@@ -1,9 +1,11 @@
 import { Link } from "react-router-dom";
+import { useCart } from "../context/CartContext";
 
 const Navbar = ({ loggedIn, userName, onLogout }) => {
+  const { cartCount } = useCart();
+
   return (
     <>
-      {/* Top Navbar */}
       <header
         style={{
           backgroundColor: "#111827",
@@ -31,14 +33,19 @@ const Navbar = ({ loggedIn, userName, onLogout }) => {
           <Link to="/unisex" style={navLinkStyle}>
             Unisex
           </Link>
-          <Link to="/quiz" style={navLinkStyle}>
-            Quiz
-          </Link>
         </nav>
 
         {loggedIn ? (
-          <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
+            <Link to="/cart" style={cartLinkStyle}>
+              <div style={cartWrapperStyle}>
+                <span style={cartIconStyle}>🛒</span>
+                {cartCount > 0 && <span style={cartBadgeStyle}>{cartCount}</span>}
+              </div>
+            </Link>
+
             <p style={{ margin: 0, fontWeight: "600" }}>Hi, {userName}</p>
+
             <button onClick={onLogout} style={logoutButtonStyle}>
               Logout
             </button>
@@ -48,7 +55,6 @@ const Navbar = ({ loggedIn, userName, onLogout }) => {
             <Link to="/login">
               <button style={loginButtonStyle}>Login</button>
             </Link>
-
             <Link to="/signup">
               <button style={signupButtonStyle}>Sign Up</button>
             </Link>
@@ -56,7 +62,6 @@ const Navbar = ({ loggedIn, userName, onLogout }) => {
         )}
       </header>
 
-      {/* Category Bar */}
       <div
         style={{
           backgroundColor: "#f43f5e",
@@ -75,9 +80,6 @@ const Navbar = ({ loggedIn, userName, onLogout }) => {
         </Link>
         <Link to="/unisex" style={categoryLinkStyle}>
           UNISEX
-        </Link>
-        <Link to="/quiz" style={categoryLinkStyle}>
-          DISCOVERY QUIZ
         </Link>
       </div>
     </>
@@ -125,6 +127,43 @@ const logoutButtonStyle = {
   color: "white",
   cursor: "pointer",
   fontWeight: "600",
+};
+
+const cartLinkStyle = {
+  textDecoration: "none",
+};
+
+const cartWrapperStyle = {
+  position: "relative",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  width: "42px",
+  height: "42px",
+  borderRadius: "50%",
+  backgroundColor: "rgba(255,255,255,0.08)",
+  cursor: "pointer",
+};
+
+const cartIconStyle = {
+  fontSize: "1.3rem",
+};
+
+const cartBadgeStyle = {
+  position: "absolute",
+  top: "-6px",
+  right: "-6px",
+  backgroundColor: "#f43f5e",
+  color: "white",
+  borderRadius: "50%",
+  minWidth: "20px",
+  height: "20px",
+  fontSize: "0.75rem",
+  fontWeight: "700",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "0 6px",
 };
 
 export default Navbar;
