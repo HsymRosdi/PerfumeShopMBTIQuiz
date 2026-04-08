@@ -7,6 +7,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import { logoutUser } from "../services/authService";
+import { createOrder } from "../services/orderService";
 
 const Cart = () => {
   const [userName, setUserName] = useState("");
@@ -47,6 +48,45 @@ const Cart = () => {
 
     return () => unsubscribe();
   }, []);
+  const handleCheckout = async () => {
+  try {
+    const user = auth.currentUser;
+
+    if (!user) {
+      alert("Please log in before checking out.");
+      navigate("/login");
+      return;
+    }
+
+    if (cartItems.length === 0) {
+      alert("Your cart is empty.");
+      return;
+    }
+
+    const orderData = {
+      userId: user.uid,
+      customerName: userName,
+      customerEmail: user.email,
+      items: cartItems,
+      total: cartTotal,
+      status: "Placed",
+    };
+
+    const orderId = await createOrder(orderData);
+
+    clearCart();
+
+    navigate("/receipt", {
+      state: {
+        orderId,
+        orderData,
+      },
+    });
+  } catch (error) {
+    console.error("Checkout error:", error);
+    alert("Something went wrong during checkout.");
+  }
+};
 
   const handleLogout = async () => {
     try {
@@ -106,7 +146,9 @@ const Cart = () => {
               <h2>Total: £{cartTotal}</h2>
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "15px", marginTop: "15px" }}>
                 <button onClick={clearCart} style={secondaryButtonStyle}>Clear Cart</button>
-                <button style={primaryButtonStyle}>Checkout</button>
+                <button onClick={handleCheckout} style={primaryButtonStyle}>
+  Checkout
+</button>
               </div>
             </div>
           </>
