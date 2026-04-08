@@ -6,6 +6,7 @@ import Men from "./pages/Men";
 import Women from "./pages/Women";
 import Unisex from "./pages/Unisex";
 import Cart from "./pages/Cart";
+import Receipt from "./pages/Receipt";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
       <Route path="/women" element={<Women />} />
       <Route path="/unisex" element={<Unisex />} />
       <Route path="/cart" element={<Cart />} />
+      <Route path="/receipt" element={<Receipt />} />
     </Routes>
   );
 }
