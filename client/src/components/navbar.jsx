@@ -33,6 +33,9 @@ const Navbar = ({ loggedIn, userName, onLogout }) => {
           <Link to="/unisex" style={navLinkStyle}>
             Unisex
           </Link>
+          <Link to="/quiz" style={quizLinkStyle}>
+            Quiz
+          </Link>
         </nav>
 
         {loggedIn ? (
@@ -90,6 +93,15 @@ const navLinkStyle = {
   color: "white",
   textDecoration: "none",
   fontWeight: "500",
+};
+
+const quizLinkStyle = {
+  color: "#111827",
+  textDecoration: "none",
+  fontWeight: "600",
+  backgroundColor: "#f43f5e",
+  padding: "8px 16px",
+  borderRadius: "20px",
 };
 
 const categoryLinkStyle = {
