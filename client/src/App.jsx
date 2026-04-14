@@ -7,6 +7,9 @@ import Women from "./pages/Women";
 import Unisex from "./pages/Unisex";
 import Cart from "./pages/Cart";
 import Receipt from "./pages/Receipt";
+import Quiz from "./pages/Quiz";
+import QuizResults from "./pages/QuizResults";
+import Mood from "./pages/Mood";
 
 function App() {
   return (
@@ -19,6 +22,9 @@ function App() {
       <Route path="/unisex" element={<Unisex />} />
       <Route path="/cart" element={<Cart />} />
       <Route path="/receipt" element={<Receipt />} />
+      <Route path="/quiz" element={<Quiz />} />
+      <Route path="/quiz/results" element={<QuizResults />} />
+      <Route path="/mood" element={<Mood />} />
     </Routes>
   );
 }
