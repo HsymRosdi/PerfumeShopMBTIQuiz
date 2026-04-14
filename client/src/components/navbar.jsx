@@ -36,6 +36,9 @@ const Navbar = ({ loggedIn, userName, onLogout }) => {
           <Link to="/quiz" style={quizLinkStyle}>
             Quiz
           </Link>
+          <Link to="/mood" style={moodLinkStyle}>
+            Mood Finder
+          </Link>
         </nav>
 
         {loggedIn ? (
@@ -100,6 +103,15 @@ const quizLinkStyle = {
   textDecoration: "none",
   fontWeight: "600",
   backgroundColor: "#f43f5e",
+  padding: "8px 16px",
+  borderRadius: "20px",
+};
+
+const moodLinkStyle = {
+  color: "#111827",
+  textDecoration: "none",
+  fontWeight: "600",
+  backgroundColor: "#FEF08A",
   padding: "8px 16px",
   borderRadius: "20px",
 };

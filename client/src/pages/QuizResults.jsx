@@ -1,20 +1,44 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "../firebase";
+import { logoutUser } from "../services/authService";
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
 import { useCart } from "../context/CartContext";
 import perfumes from "../data/perfume";
 import { calculateMbtiType, getQuizRecommendations, getMatchExplanation } from "../utils/quizRecommendation";
 
-const QuizResults = ({ loggedIn, userName, onLogout }) => {
+const QuizResults = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const [userName, setUserName] = useState("");
+  const [loggedIn, setLoggedIn] = useState(false);
   const [mbtiResult, setMbtiResult] = useState(null);
   const [recommendations, setRecommendations] = useState([]);
   const [genderPreference, setGenderPreference] = useState("Unisex");
   const [expandedCard, setExpandedCard] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setLoggedIn(true);
+        try {
+          const snap = await getDoc(doc(db, "users", user.uid));
+          setUserName(snap.exists() ? snap.data().fullName || user.email : user.email);
+        } catch { setUserName("User"); }
+      } else {
+        setLoggedIn(false);
+        setUserName("");
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogout = async () => { try { await logoutUser(); navigate("/"); } catch {} };
 
   useEffect(() => {
     const answers = location.state?.answers;
@@ -52,7 +76,7 @@ const QuizResults = ({ loggedIn, userName, onLogout }) => {
   if (!mbtiResult) {
     return (
       <>
-        <Navbar loggedIn={loggedIn} userName={userName} onLogout={onLogout} />
+        <Navbar loggedIn={loggedIn} userName={userName} onLogout={handleLogout} />
         <main style={loadingStyle}>
           <div style={loadingSpinnerStyle} />
           <p>Analyzing your personality...</p>
@@ -64,7 +88,7 @@ const QuizResults = ({ loggedIn, userName, onLogout }) => {
 
   return (
     <>
-      <Navbar loggedIn={loggedIn} userName={userName} onLogout={onLogout} />
+      <Navbar loggedIn={loggedIn} userName={userName} onLogout={handleLogout} />
       <main style={mainStyle}>
         {/* Hero Result Section */}
         <div style={{

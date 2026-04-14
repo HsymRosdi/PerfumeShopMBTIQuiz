@@ -1,15 +1,39 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "../firebase";
+import { logoutUser } from "../services/authService";
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
 import { quizQuestions } from "../data/quizQuestions";
 
-const Quiz = ({ loggedIn, userName, onLogout }) => {
+const Quiz = () => {
   const navigate = useNavigate();
+  const [userName, setUserName] = useState("");
+  const [loggedIn, setLoggedIn] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(-1); // -1 = welcome screen
   const [answers, setAnswers] = useState([]);
   const [selectedOption, setSelectedOption] = useState(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setLoggedIn(true);
+        try {
+          const snap = await getDoc(doc(db, "users", user.uid));
+          setUserName(snap.exists() ? snap.data().fullName || user.email : user.email);
+        } catch { setUserName("User"); }
+      } else {
+        setLoggedIn(false);
+        setUserName("");
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogout = async () => { try { await logoutUser(); navigate("/"); } catch {} };
 
   const totalQuestions = quizQuestions.length;
   const progress = currentQuestion >= 0 ? ((currentQuestion + 1) / totalQuestions) * 100 : 0;
@@ -94,7 +118,7 @@ const Quiz = ({ loggedIn, userName, onLogout }) => {
   if (currentQuestion === -1) {
     return (
       <>
-        <Navbar loggedIn={loggedIn} userName={userName} onLogout={onLogout} />
+        <Navbar loggedIn={loggedIn} userName={userName} onLogout={handleLogout} />
         <main style={mainStyle}>
           <div style={{
             ...welcomeContainerStyle,
@@ -140,7 +164,7 @@ const Quiz = ({ loggedIn, userName, onLogout }) => {
 
   return (
     <>
-      <Navbar loggedIn={loggedIn} userName={userName} onLogout={onLogout} />
+      <Navbar loggedIn={loggedIn} userName={userName} onLogout={handleLogout} />
       <main style={mainStyle}>
         {/* Progress Section */}
         <div style={progressSectionStyle}>
