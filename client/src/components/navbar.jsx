@@ -1,193 +1,77 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 
 const Navbar = ({ loggedIn, userName, onLogout }) => {
   const { cartCount } = useCart();
+  const location = useLocation();
+  const isActive = (path) => location.pathname === path;
 
   return (
     <>
-      <header
-        style={{
-          backgroundColor: "#111827",
-          color: "white",
-          padding: "18px 40px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: "15px",
-        }}
-      >
-        <h2 style={{ margin: 0, fontSize: "1.5rem" }}>The Perfume Shop</h2>
+      {/* Gold Top Bar */}
+      <div style={topBarStyle}>
+        <p style={topBarTextStyle}>✨ Free shipping on orders over £100 &nbsp;|&nbsp; New arrivals every week</p>
+      </div>
 
-        <nav style={{ display: "flex", gap: "20px", alignItems: "center" }}>
-          <Link to="/" style={navLinkStyle}>
-            Home
-          </Link>
-          <Link to="/men" style={navLinkStyle}>
-            Men
-          </Link>
-          <Link to="/women" style={navLinkStyle}>
-            Women
-          </Link>
-          <Link to="/unisex" style={navLinkStyle}>
-            Unisex
-          </Link>
-          <Link to="/quiz" style={quizLinkStyle}>
-            Quiz
-          </Link>
-          <Link to="/mood" style={moodLinkStyle}>
-            Mood Finder
-          </Link>
+      {/* Main Header */}
+      <header style={headerStyle}>
+        <Link to="/" style={{ textDecoration: "none" }}>
+          <div style={logoStyle}>
+            <span style={{ fontSize: "2rem" }}>🌸</span>
+            <div>
+              <div style={logoTitleStyle}>The Perfume Shop</div>
+              <div style={logoTaglineStyle}>Luxury Fragrances</div>
+            </div>
+          </div>
+        </Link>
+
+        <nav style={navStyle}>
+          {[{ path: "/", label: "Home" }, { path: "/men", label: "Men" }, { path: "/women", label: "Women" }, { path: "/unisex", label: "Unisex" }].map(({ path, label }) => (
+            <Link key={path} to={path} style={{ ...navLinkStyle, color: isActive(path) ? "#c9a84c" : "white", borderBottom: isActive(path) ? "2px solid #c9a84c" : "2px solid transparent" }}>
+              {label}
+            </Link>
+          ))}
+          <Link to="/quiz" style={{ ...pillBtnStyle, background: "linear-gradient(135deg, #c9a84c, #a07830)" }}>🧠 Quiz</Link>
+          <Link to="/mood" style={{ ...pillBtnStyle, background: "linear-gradient(135deg, #f43f5e, #e11d48)" }}>🌸 Mood</Link>
         </nav>
 
-        {loggedIn ? (
-          <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
-            <Link to="/cart" style={cartLinkStyle}>
-              <div style={cartWrapperStyle}>
-                <span style={cartIconStyle}>🛒</span>
-                {cartCount > 0 && <span style={cartBadgeStyle}>{cartCount}</span>}
-              </div>
-            </Link>
-
-            <p style={{ margin: 0, fontWeight: "600" }}>Hi, {userName}</p>
-
-            <button onClick={onLogout} style={logoutButtonStyle}>
-              Logout
-            </button>
-          </div>
-        ) : (
-          <div style={{ display: "flex", gap: "10px" }}>
-            <Link to="/login">
-              <button style={loginButtonStyle}>Login</button>
-            </Link>
-            <Link to="/signup">
-              <button style={signupButtonStyle}>Sign Up</button>
-            </Link>
-          </div>
-        )}
+        <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+          {loggedIn ? (
+            <>
+              <Link to="/cart" style={{ textDecoration: "none" }}>
+                <div style={cartWrapperStyle}>
+                  <span style={{ fontSize: "1.3rem" }}>🛒</span>
+                  {cartCount > 0 && <span style={cartBadgeStyle}>{cartCount}</span>}
+                </div>
+              </Link>
+              <span style={{ color: "#c9a84c", fontWeight: "600", fontSize: "0.9rem" }}>Hi, {userName}</span>
+              <button onClick={onLogout} style={logoutBtnStyle}>Logout</button>
+            </>
+          ) : (
+            <>
+              <Link to="/login"><button style={loginBtnStyle}>Login</button></Link>
+              <Link to="/signup"><button style={signupBtnStyle}>Sign Up</button></Link>
+            </>
+          )}
+        </div>
       </header>
-
-      <div
-        style={{
-          backgroundColor: "#f43f5e",
-          display: "flex",
-          justifyContent: "center",
-          gap: "40px",
-          padding: "14px 20px",
-          flexWrap: "wrap",
-        }}
-      >
-        <Link to="/men" style={categoryLinkStyle}>
-          MEN'S
-        </Link>
-        <Link to="/women" style={categoryLinkStyle}>
-          WOMEN'S
-        </Link>
-        <Link to="/unisex" style={categoryLinkStyle}>
-          UNISEX
-        </Link>
-      </div>
     </>
   );
 };
 
-const navLinkStyle = {
-  color: "white",
-  textDecoration: "none",
-  fontWeight: "500",
-};
-
-const quizLinkStyle = {
-  color: "#111827",
-  textDecoration: "none",
-  fontWeight: "600",
-  backgroundColor: "#f43f5e",
-  padding: "8px 16px",
-  borderRadius: "20px",
-};
-
-const moodLinkStyle = {
-  color: "#111827",
-  textDecoration: "none",
-  fontWeight: "600",
-  backgroundColor: "#FEF08A",
-  padding: "8px 16px",
-  borderRadius: "20px",
-};
-
-const categoryLinkStyle = {
-  color: "white",
-  textDecoration: "none",
-  fontWeight: "600",
-  letterSpacing: "0.5px",
-};
-
-const loginButtonStyle = {
-  padding: "10px 16px",
-  border: "1px solid #111827",
-  borderRadius: "10px",
-  backgroundColor: "white",
-  color: "#111827",
-  cursor: "pointer",
-  fontWeight: "600",
-};
-
-const signupButtonStyle = {
-  padding: "10px 16px",
-  border: "none",
-  borderRadius: "10px",
-  backgroundColor: "#111827",
-  color: "white",
-  cursor: "pointer",
-  fontWeight: "600",
-};
-
-const logoutButtonStyle = {
-  padding: "10px 16px",
-  border: "none",
-  borderRadius: "10px",
-  backgroundColor: "#f43f5e",
-  color: "white",
-  cursor: "pointer",
-  fontWeight: "600",
-};
-
-const cartLinkStyle = {
-  textDecoration: "none",
-};
-
-const cartWrapperStyle = {
-  position: "relative",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  width: "42px",
-  height: "42px",
-  borderRadius: "50%",
-  backgroundColor: "rgba(255,255,255,0.08)",
-  cursor: "pointer",
-};
-
-const cartIconStyle = {
-  fontSize: "1.3rem",
-};
-
-const cartBadgeStyle = {
-  position: "absolute",
-  top: "-6px",
-  right: "-6px",
-  backgroundColor: "#f43f5e",
-  color: "white",
-  borderRadius: "50%",
-  minWidth: "20px",
-  height: "20px",
-  fontSize: "0.75rem",
-  fontWeight: "700",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: "0 6px",
-};
+const topBarStyle = { backgroundColor: "#c9a84c", padding: "8px 20px", textAlign: "center" };
+const topBarTextStyle = { color: "#111827", fontSize: "0.82rem", fontWeight: "600", letterSpacing: "0.3px", margin: 0 };
+const headerStyle = { backgroundColor: "#0a0a0a", color: "white", padding: "18px 48px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px", boxShadow: "0 2px 20px rgba(0,0,0,0.4)", position: "sticky", top: 0, zIndex: 1000 };
+const logoStyle = { display: "flex", alignItems: "center", gap: "12px" };
+const logoTitleStyle = { fontFamily: "'Playfair Display', serif", fontSize: "1.4rem", fontWeight: "700", color: "#c9a84c", lineHeight: "1.2" };
+const logoTaglineStyle = { fontSize: "0.7rem", color: "#9ca3af", letterSpacing: "2px", textTransform: "uppercase" };
+const navStyle = { display: "flex", gap: "8px", alignItems: "center" };
+const navLinkStyle = { textDecoration: "none", fontWeight: "500", fontSize: "0.95rem", padding: "6px 12px", borderRadius: "6px", transition: "all 0.2s ease" };
+const pillBtnStyle = { color: "white", textDecoration: "none", fontWeight: "700", fontSize: "0.9rem", padding: "9px 18px", borderRadius: "25px", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" };
+const cartWrapperStyle = { position: "relative", display: "flex", alignItems: "center", justifyContent: "center", width: "42px", height: "42px", borderRadius: "50%", backgroundColor: "rgba(201,168,76,0.15)", border: "1px solid rgba(201,168,76,0.3)", cursor: "pointer" };
+const cartBadgeStyle = { position: "absolute", top: "-5px", right: "-5px", backgroundColor: "#f43f5e", color: "white", borderRadius: "50%", minWidth: "20px", height: "20px", fontSize: "0.72rem", fontWeight: "700", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 5px" };
+const loginBtnStyle = { padding: "9px 20px", border: "1px solid rgba(201,168,76,0.5)", borderRadius: "25px", backgroundColor: "transparent", color: "#c9a84c", cursor: "pointer", fontWeight: "600", fontSize: "0.9rem" };
+const signupBtnStyle = { padding: "9px 20px", border: "none", borderRadius: "25px", background: "linear-gradient(135deg, #c9a84c, #a07830)", color: "white", cursor: "pointer", fontWeight: "700", fontSize: "0.9rem" };
+const logoutBtnStyle = { padding: "9px 20px", border: "none", borderRadius: "25px", backgroundColor: "#1f2937", color: "#c9a84c", cursor: "pointer", fontWeight: "600", fontSize: "0.9rem" };
 
 export default Navbar;

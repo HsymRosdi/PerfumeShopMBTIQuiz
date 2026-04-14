@@ -14,130 +14,78 @@ const Unisex = () => {
   const [userName, setUserName] = useState("");
   const [loggedIn, setLoggedIn] = useState(false);
   const [selectedPerfume, setSelectedPerfume] = useState(null);
-
+  const [filter, setFilter] = useState("All");
   const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setLoggedIn(true);
-
         try {
-          const userRef = doc(db, "users", user.uid);
-          const userSnap = await getDoc(userRef);
-
-          if (userSnap.exists()) {
-            setUserName(userSnap.data().fullName || user.email || "User");
-          } else {
-            setUserName(user.email || "User");
-          }
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-        }
-      } else {
-        setLoggedIn(false);
-        setUserName("");
-      }
+          const snap = await getDoc(doc(db, "users", user.uid));
+          setUserName(snap.exists() ? snap.data().fullName || user.email : user.email);
+        } catch { setUserName("User"); }
+      } else { setLoggedIn(false); setUserName(""); }
     });
-
     return () => unsubscribe();
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await logoutUser();
-      navigate("/");
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
+  const handleLogout = async () => { try { await logoutUser(); navigate("/"); } catch {} };
 
-  const handleQuickView = (perfume) => {
-    setSelectedPerfume(perfume);
-  };
-
-  const handleCloseModal = () => {
-    setSelectedPerfume(null);
-  };
-
-  const handleAddToCart = (perfume, quantity) => {
-    console.log("Added to cart:", perfume.name, "Quantity:", quantity);
-  };
-
-  const unisexPerfumes = Array.isArray(perfumes)
-    ? perfumes.filter((perfume) => perfume.gender === "Unisex")
-    : [];
+  const basePerfumes = perfumes.filter(p => p.gender === "Unisex");
+  const categories = ["All", ...new Set(basePerfumes.map(p => p.category))];
+  const filtered = filter === "All" ? basePerfumes : basePerfumes.filter(p => p.category === filter);
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#fffafc",
-        color: "#111827",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
-      <Navbar
-        loggedIn={loggedIn}
-        userName={userName}
-        onLogout={handleLogout}
-      />
+    <div style={{ minHeight: "100vh", background: "#faf8f5" }}>
+      <Navbar loggedIn={loggedIn} userName={userName} onLogout={handleLogout} />
 
-      <section style={{ padding: "50px 40px" }}>
-        <h1
-          style={{
-            textAlign: "center",
-            fontSize: "2.5rem",
-            marginBottom: "10px",
-          }}
-        >
-          Unisex Perfumes
-        </h1>
+      <section style={pageHeaderStyle}>
+        <div style={pageHeaderOverlayStyle} />
+        <div style={{ position: "relative", textAlign: "center" }}>
+          <p style={eyebrowStyle}>The Collection</p>
+          <h1 style={pageTitleStyle}>Unisex Fragrances</h1>
+          <p style={pageSubtitleStyle}>Boundary-free scents crafted for everyone</p>
+        </div>
+      </section>
 
-        <p
-          style={{
-            textAlign: "center",
-            color: "#6b7280",
-            marginBottom: "30px",
-          }}
-        >
-          Explore fragrances designed for everyone.
-        </p>
+      <section style={filterBarStyle}>
+        <p style={filterLabelStyle}>Filter by:</p>
+        <div style={filterBtnsStyle}>
+          {categories.map(cat => (
+            <button key={cat} onClick={() => setFilter(cat)} style={{ ...filterBtnStyle, backgroundColor: filter === cat ? "#0a0a0a" : "white", color: filter === cat ? "#c9a84c" : "#6b7280", border: filter === cat ? "1px solid #0a0a0a" : "1px solid #e5e7eb" }}>
+              {cat}
+            </button>
+          ))}
+        </div>
+        <p style={countStyle}>{filtered.length} fragrances</p>
+      </section>
 
-        {unisexPerfumes.length === 0 ? (
-          <p style={{ textAlign: "center", color: "#6b7280" }}>
-            No perfumes found for this category.
-          </p>
-        ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
-              gap: "25px",
-              maxWidth: "1400px",
-              margin: "0 auto",
-            }}
-          >
-            {unisexPerfumes.map((perfume) => (
-              <PerfumeCard
-                key={perfume.id}
-                perfume={perfume}
-                onQuickView={handleQuickView}
-              />
-            ))}
-          </div>
-        )}
+      <section style={sectionStyle}>
+        <div style={gridStyle}>
+          {filtered.map(perfume => (
+            <PerfumeCard key={perfume.id} perfume={perfume} onQuickView={setSelectedPerfume} />
+          ))}
+        </div>
       </section>
 
       <Footer />
-
-      <QuickViewModal
-        perfume={selectedPerfume}
-        onClose={handleCloseModal}
-        onAddToCart={handleAddToCart}
-      />
+      <QuickViewModal perfume={selectedPerfume} onClose={() => setSelectedPerfume(null)} />
     </div>
   );
 };
+
+const pageHeaderStyle = { position: "relative", background: "linear-gradient(135deg, #0a0a0a, #0a1218)", padding: "80px 48px", overflow: "hidden" };
+const pageHeaderOverlayStyle = { position: "absolute", inset: 0, background: "radial-gradient(ellipse at center, rgba(201,168,76,0.1) 0%, transparent 70%)" };
+const eyebrowStyle = { color: "#c9a84c", fontSize: "0.85rem", fontWeight: "600", letterSpacing: "3px", textTransform: "uppercase", marginBottom: "12px" };
+const pageTitleStyle = { fontFamily: "'Playfair Display', serif", fontSize: "3rem", fontWeight: "700", color: "white", marginBottom: "12px" };
+const pageSubtitleStyle = { color: "#9ca3af", fontSize: "1.05rem" };
+const filterBarStyle = { backgroundColor: "white", padding: "20px 48px", display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap", borderBottom: "1px solid #f3f4f6", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" };
+const filterLabelStyle = { color: "#6b7280", fontWeight: "600", fontSize: "0.9rem", margin: 0, whiteSpace: "nowrap" };
+const filterBtnsStyle = { display: "flex", gap: "8px", flexWrap: "wrap", flex: 1 };
+const filterBtnStyle = { padding: "8px 18px", borderRadius: "25px", cursor: "pointer", fontWeight: "600", fontSize: "0.85rem", transition: "all 0.2s ease" };
+const countStyle = { color: "#9ca3af", fontSize: "0.85rem", margin: 0, whiteSpace: "nowrap" };
+const sectionStyle = { padding: "60px 48px", maxWidth: "1400px", margin: "0 auto" };
+const gridStyle = { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "28px" };
 
 export default Unisex;

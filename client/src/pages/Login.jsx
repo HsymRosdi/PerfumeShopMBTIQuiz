@@ -4,161 +4,96 @@ import { loginUser } from "../services/authService";
 
 const Login = () => {
   const navigate = useNavigate();
-
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
+  const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
     const { email, password } = formData;
-
-    if (!email || !password) {
-      setError("Please fill in all fields.");
-      return;
-    }
-
+    if (!email || !password) { setError("Please fill in all fields."); return; }
     try {
       setLoading(true);
       await loginUser(email, password);
       navigate("/");
-    } catch (err) {
-      setError("Invalid email or password.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const pageStyle = {
-    minHeight: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    background: "linear-gradient(135deg, #f8f5ff 0%, #fff9f2 100%)",
-    padding: "20px",
-  };
-
-  const cardStyle = {
-    width: "100%",
-    maxWidth: "420px",
-    backgroundColor: "#ffffff",
-    borderRadius: "20px",
-    padding: "32px",
-    boxShadow: "0 12px 30px rgba(0, 0, 0, 0.08)",
-    color: "#111827",
-  };
-
-  const titleStyle = {
-    margin: 0,
-    fontSize: "2rem",
-    fontWeight: "700",
-    textAlign: "center",
-  };
-
-  const subtitleStyle = {
-    marginTop: "8px",
-    marginBottom: "24px",
-    textAlign: "center",
-    color: "#6b7280",
-  };
-
-  const labelStyle = {
-    display: "block",
-    marginBottom: "6px",
-    fontWeight: "600",
-    fontSize: "0.95rem",
-  };
-
-  const inputStyle = {
-    width: "100%",
-    padding: "12px 14px",
-    borderRadius: "12px",
-    border: "1px solid #d1d5db",
-    outline: "none",
-    fontSize: "1rem",
-    boxSizing: "border-box",
-    marginBottom: "16px",
-  };
-
-  const buttonStyle = {
-    width: "100%",
-    padding: "12px",
-    border: "none",
-    borderRadius: "12px",
-    backgroundColor: "#111827",
-    color: "#ffffff",
-    fontSize: "1rem",
-    fontWeight: "600",
-    cursor: "pointer",
-    marginTop: "8px",
-  };
-
-  const footerStyle = {
-    marginTop: "20px",
-    textAlign: "center",
-    color: "#6b7280",
+    } catch { setError("Invalid email or password."); }
+    finally { setLoading(false); }
   };
 
   return (
     <div style={pageStyle}>
-      <div style={cardStyle}>
-        <h1 style={titleStyle}>Welcome Back</h1>
-        <p style={subtitleStyle}>Log in to continue your perfume journey</p>
+      {/* Left Panel */}
+      <div style={leftPanelStyle}>
+        <div style={leftContentStyle}>
+          <div style={leftLogoStyle}>
+            <span style={{ fontSize: "3rem" }}>🌸</span>
+            <span style={leftLogoTextStyle}>The Perfume Shop</span>
+          </div>
+          <h2 style={leftTitleStyle}>Welcome back to luxury</h2>
+          <p style={leftDescStyle}>Sign in to access your personalised fragrance journey, cart, and exclusive recommendations.</p>
+          <div style={leftFeaturesStyle}>
+            {["🧠 MBTI-based perfume matching", "🌸 Mood Finder recommendations", "🛒 Saved cart & order history"].map(f => (
+              <p key={f} style={leftFeatureItemStyle}>{f}</p>
+            ))}
+          </div>
+        </div>
+      </div>
 
-        <form onSubmit={handleSubmit}>
-          <label style={labelStyle}>Email</label>
-          <input
-            style={inputStyle}
-            type="email"
-            name="email"
-            placeholder="Enter your email"
-            value={formData.email}
-            onChange={handleChange}
-          />
+      {/* Right Panel */}
+      <div style={rightPanelStyle}>
+        <div style={cardStyle}>
+          <h1 style={titleStyle}>Welcome Back</h1>
+          <p style={subtitleStyle}>Log in to continue your perfume journey</p>
 
-          <label style={labelStyle}>Password</label>
-          <input
-            style={inputStyle}
-            type="password"
-            name="password"
-            placeholder="Enter your password"
-            value={formData.password}
-            onChange={handleChange}
-          />
+          <form onSubmit={handleSubmit}>
+            <label style={labelStyle}>Email</label>
+            <input style={inputStyle} type="email" name="email" placeholder="Enter your email" value={formData.email} onChange={handleChange} />
 
-          {error && (
-            <p style={{ color: "#dc2626", marginTop: "0", marginBottom: "12px" }}>
-              {error}
-            </p>
-          )}
+            <label style={labelStyle}>Password</label>
+            <input style={inputStyle} type="password" name="password" placeholder="Enter your password" value={formData.password} onChange={handleChange} />
 
-          <button type="submit" style={buttonStyle} disabled={loading}>
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
+            {error && <p style={errorStyle}>{error}</p>}
 
-        <p style={footerStyle}>
-          Don&apos;t have an account?{" "}
-          <Link to="/signup" style={{ color: "#111827", fontWeight: "600" }}>
-            Sign Up
-          </Link>
-        </p>
+            <button type="submit" style={submitBtnStyle} disabled={loading}>
+              {loading ? "Signing in..." : "Login →"}
+            </button>
+          </form>
+
+          <div style={dividerStyle}><span style={dividerTextStyle}>or</span></div>
+
+          <p style={footerTextStyle}>
+            Don't have an account?{" "}
+            <Link to="/signup" style={linkStyle}>Create one here</Link>
+          </p>
+        </div>
       </div>
     </div>
   );
 };
+
+const pageStyle = { minHeight: "100vh", display: "flex" };
+const leftPanelStyle = { flex: 1, background: "linear-gradient(135deg, #0a0a0a 0%, #1a1208 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: "60px 48px" };
+const leftContentStyle = { maxWidth: "420px" };
+const leftLogoStyle = { display: "flex", alignItems: "center", gap: "12px", marginBottom: "40px" };
+const leftLogoTextStyle = { fontFamily: "'Playfair Display', serif", fontSize: "1.4rem", fontWeight: "700", color: "#c9a84c" };
+const leftTitleStyle = { fontFamily: "'Playfair Display', serif", fontSize: "2.2rem", fontWeight: "700", color: "white", lineHeight: "1.3", marginBottom: "16px" };
+const leftDescStyle = { color: "#9ca3af", fontSize: "1rem", lineHeight: "1.7", marginBottom: "32px" };
+const leftFeaturesStyle = { display: "flex", flexDirection: "column", gap: "12px" };
+const leftFeatureItemStyle = { color: "#d1d5db", fontSize: "0.95rem", margin: 0, padding: "10px 16px", backgroundColor: "rgba(201,168,76,0.08)", borderRadius: "10px", borderLeft: "3px solid #c9a84c" };
+const rightPanelStyle = { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 48px", background: "#faf8f5" };
+const cardStyle = { width: "100%", maxWidth: "420px", backgroundColor: "white", borderRadius: "24px", padding: "48px 40px", boxShadow: "0 20px 60px rgba(0,0,0,0.1)" };
+const titleStyle = { fontFamily: "'Playfair Display', serif", fontSize: "2rem", fontWeight: "700", textAlign: "center", color: "#111827", marginBottom: "8px" };
+const subtitleStyle = { textAlign: "center", color: "#6b7280", marginBottom: "32px", fontSize: "0.95rem" };
+const labelStyle = { display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "0.9rem", color: "#374151" };
+const inputStyle = { width: "100%", padding: "14px 16px", borderRadius: "12px", border: "1.5px solid #e5e7eb", outline: "none", fontSize: "1rem", boxSizing: "border-box", marginBottom: "20px", fontFamily: "'Inter', sans-serif", transition: "border 0.2s" };
+const errorStyle = { color: "#dc2626", marginBottom: "12px", fontSize: "0.9rem" };
+const submitBtnStyle = { width: "100%", padding: "15px", border: "none", borderRadius: "12px", background: "linear-gradient(135deg, #c9a84c, #a07830)", color: "white", fontSize: "1rem", fontWeight: "700", cursor: "pointer", marginTop: "4px", boxShadow: "0 6px 20px rgba(201,168,76,0.3)" };
+const dividerStyle = { display: "flex", alignItems: "center", margin: "24px 0", gap: "12px" };
+const dividerTextStyle = { color: "#d1d5db", fontSize: "0.85rem", whiteSpace: "nowrap" };
+const footerTextStyle = { textAlign: "center", color: "#6b7280", fontSize: "0.9rem" };
+const linkStyle = { color: "#c9a84c", fontWeight: "700", textDecoration: "none" };
 
 export default Login;
