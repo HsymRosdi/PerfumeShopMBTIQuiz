@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import perfumes from "../data/perfume";
-import { getSimilarPerfumes, getSimilarityExplanation } from "../utils/similarPerfumes";
+import perfumes from "../../data/perfume";
+import { getSimilarPerfumes, getSimilarityExplanation } from "../../utils/similarPerfumes";
 
 const SimilarPerfumes = ({ currentPerfume, onSelectPerfume }) => {
   // Calculate similar perfumes using the similarity algorithm

@@ -4,8 +4,8 @@ import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import { logoutUser } from "../services/authService";
-import Navbar from "../components/navbar";
-import Footer from "../components/footer";
+import Navbar from "../components/layout/navbar";
+import Footer from "../components/layout/footer";
 import { quizQuestions } from "../data/quizQuestions";
 
 const Quiz = () => {

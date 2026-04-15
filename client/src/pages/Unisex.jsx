@@ -5,10 +5,10 @@ import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import { logoutUser } from "../services/authService";
 import perfumes from "../data/perfume";
-import Navbar from "../components/navbar";
-import Footer from "../components/footer";
-import PerfumeCard from "../components/PerfumeCard";
-import QuickViewModal from "../components/quickView";
+import Navbar from "../components/layout/navbar";
+import Footer from "../components/layout/footer";
+import PerfumeCard from "../components/perfume/perfumecard";
+import QuickViewModal from "../components/perfume/quickView";
 
 const Unisex = () => {
   const [userName, setUserName] = useState("");
