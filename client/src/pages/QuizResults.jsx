@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import { logoutUser } from "../services/authService";
 import Navbar from "../components/navbar";
@@ -21,7 +21,9 @@ const QuizResults = () => {
   const [genderPreference, setGenderPreference] = useState("Unisex");
   const [expandedCard, setExpandedCard] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [savedToFirestore, setSavedToFirestore] = useState(false);
 
+  // Auth state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -40,38 +42,50 @@ const QuizResults = () => {
 
   const handleLogout = async () => { try { await logoutUser(); navigate("/"); } catch {} };
 
+  // Calculate MBTI and save to Firestore
   useEffect(() => {
     const answers = location.state?.answers;
-
     if (!answers || answers.length === 0) {
       navigate("/quiz");
       return;
     }
 
-    // Extract gender preference from answers
     const genderAnswer = answers.find(a => a.dimension === "gender");
     const gender = genderAnswer?.value || "Unisex";
     setGenderPreference(gender);
 
-    // Calculate MBTI type
     const result = calculateMbtiType(answers);
     setMbtiResult(result);
 
-    // Get recommendations
     const recs = getQuizRecommendations(perfumes, result, gender, 5);
     setRecommendations(recs);
 
-    // Trigger animation
     setTimeout(() => setIsLoaded(true), 100);
+
+    // Save MBTI result to Firestore if user is logged in
+    const saveToFirestore = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      try {
+        await setDoc(doc(db, "users", user.uid), {
+          mbtiType: result.type,
+          mbtiProfile: result.profile.name,
+          mbtiStrengths: result.strengths,
+          genderPreference: gender,
+          mbtiUpdatedAt: new Date().toISOString(),
+        }, { merge: true }); // merge: true so we don't overwrite other user data
+        setSavedToFirestore(true);
+      } catch (err) {
+        console.error("Error saving MBTI result:", err);
+      }
+    };
+
+    // Small delay to ensure auth is ready
+    setTimeout(saveToFirestore, 1000);
   }, [location.state, navigate]);
 
-  const handleAddToCart = (perfume) => {
-    addToCart(perfume, 1);
-  };
-
-  const handleRetakeQuiz = () => {
-    navigate("/quiz");
-  };
+  const handleAddToCart = (perfume) => addToCart(perfume, 1);
+  const handleRetakeQuiz = () => navigate("/quiz");
 
   if (!mbtiResult) {
     return (
@@ -79,7 +93,7 @@ const QuizResults = () => {
         <Navbar loggedIn={loggedIn} userName={userName} onLogout={handleLogout} />
         <main style={loadingStyle}>
           <div style={loadingSpinnerStyle} />
-          <p>Analyzing your personality...</p>
+          <p>Analysing your personality...</p>
         </main>
         <Footer />
       </>
@@ -90,6 +104,14 @@ const QuizResults = () => {
     <>
       <Navbar loggedIn={loggedIn} userName={userName} onLogout={handleLogout} />
       <main style={mainStyle}>
+
+        {/* Saved indicator */}
+        {savedToFirestore && loggedIn && (
+          <div style={savedBannerStyle}>
+            ✅ Your MBTI result has been saved! The Mood Finder will now use your personality for smarter recommendations.
+          </div>
+        )}
+
         {/* Hero Result Section */}
         <div style={{
           ...heroSectionStyle,
@@ -105,153 +127,66 @@ const QuizResults = () => {
           <p style={descriptionStyle}>{mbtiResult.profile.description}</p>
 
           <div style={fragranceStyleBoxStyle}>
-            <h3 style={fragranceStyleTitleStyle}>Your Ideal Fragrance Style</h3>
+            <p style={fragranceStyleLabelStyle}>Your Fragrance Style</p>
             <p style={fragranceStyleTextStyle}>{mbtiResult.profile.fragranceStyle}</p>
           </div>
 
-          {/* Personality Traits */}
+          {/* Traits */}
           <div style={traitsContainerStyle}>
             {mbtiResult.profile.traits.map((trait, index) => (
               <span key={index} style={traitTagStyle}>{trait}</span>
             ))}
           </div>
 
-          {/* Dimension Strengths */}
+          {/* Dimension Bars */}
           <div style={dimensionsContainerStyle}>
-            <div style={dimensionItemStyle}>
-              <span style={dimensionLabelStyle}>
-                {mbtiResult.type[0] === 'E' ? 'Extraversion' : 'Introversion'}
-              </span>
-              <div style={dimensionBarContainerStyle}>
-                <div style={{ ...dimensionBarStyle, width: `${mbtiResult.strengths.EI}%` }} />
+            {[
+              { label: mbtiResult.type[0] === 'E' ? 'Extraversion' : 'Introversion', value: mbtiResult.strengths.EI },
+              { label: mbtiResult.type[1] === 'S' ? 'Sensing' : 'Intuition', value: mbtiResult.strengths.SN },
+              { label: mbtiResult.type[2] === 'T' ? 'Thinking' : 'Feeling', value: mbtiResult.strengths.TF },
+              { label: mbtiResult.type[3] === 'J' ? 'Judging' : 'Perceiving', value: mbtiResult.strengths.JP },
+            ].map(({ label, value }) => (
+              <div key={label} style={dimensionRowStyle}>
+                <span style={dimensionLabelStyle}>{label}</span>
+                <div style={dimensionBarContainerStyle}>
+                  <div style={{ ...dimensionBarStyle, width: `${value}%` }} />
+                </div>
+                <span style={dimensionPercentStyle}>{value}%</span>
               </div>
-              <span style={dimensionPercentStyle}>{mbtiResult.strengths.EI}%</span>
-            </div>
-            <div style={dimensionItemStyle}>
-              <span style={dimensionLabelStyle}>
-                {mbtiResult.type[1] === 'S' ? 'Sensing' : 'Intuition'}
-              </span>
-              <div style={dimensionBarContainerStyle}>
-                <div style={{ ...dimensionBarStyle, width: `${mbtiResult.strengths.SN}%` }} />
-              </div>
-              <span style={dimensionPercentStyle}>{mbtiResult.strengths.SN}%</span>
-            </div>
-            <div style={dimensionItemStyle}>
-              <span style={dimensionLabelStyle}>
-                {mbtiResult.type[2] === 'T' ? 'Thinking' : 'Feeling'}
-              </span>
-              <div style={dimensionBarContainerStyle}>
-                <div style={{ ...dimensionBarStyle, width: `${mbtiResult.strengths.TF}%` }} />
-              </div>
-              <span style={dimensionPercentStyle}>{mbtiResult.strengths.TF}%</span>
-            </div>
-            <div style={dimensionItemStyle}>
-              <span style={dimensionLabelStyle}>
-                {mbtiResult.type[3] === 'J' ? 'Judging' : 'Perceiving'}
-              </span>
-              <div style={dimensionBarContainerStyle}>
-                <div style={{ ...dimensionBarStyle, width: `${mbtiResult.strengths.JP}%` }} />
-              </div>
-              <span style={dimensionPercentStyle}>{mbtiResult.strengths.JP}%</span>
-            </div>
+            ))}
           </div>
         </div>
 
-        {/* Recommendations Section */}
-        <section style={{
-          ...recommendationsSectionStyle,
-          opacity: isLoaded ? 1 : 0,
-          transform: isLoaded ? "translateY(0)" : "translateY(30px)",
-          transitionDelay: "0.2s"
-        }}>
-          <h2 style={sectionTitleStyle}>Your Perfect Matches</h2>
-          <p style={sectionSubtitleStyle}>
+        {/* Recommendations */}
+        <div style={recommendationsSectionStyle}>
+          <h2 style={recTitleStyle}>Your Personalised Recommendations</h2>
+          <p style={recSubtitleStyle}>
             Based on your {mbtiResult.profile.name} personality, here are the fragrances we recommend for you
           </p>
 
-          <div style={recommendationsGridStyle}>
-            {recommendations.map((perfume, index) => (
-              <div
-                key={perfume.id}
-                style={{
-                  ...recommendationCardStyle,
-                  animationDelay: `${index * 0.1}s`
-                }}
-              >
-                {/* Match Badge */}
-                <div style={matchBadgeStyle}>
-                  {perfume.matchPercentage}% Match
-                </div>
-
-                {/* Ranking Badge */}
-                {index === 0 && (
-                  <div style={topPickBadgeStyle}>Top Pick</div>
-                )}
-
-                <div style={cardImageContainerStyle}>
-                  <img
-                    src={perfume.image}
-                    alt={perfume.name}
-                    style={cardImageStyle}
-                  />
+          <div style={perfumeGridStyle}>
+            {recommendations.map((perfume) => (
+              <div key={perfume.id} style={perfumeCardStyle}>
+                <div style={imageWrapperStyle}>
+                  <img src={perfume.image} alt={perfume.name} style={perfumeImageStyle} />
+                  <div style={matchBadgeStyle}>{perfume.matchScore}% match</div>
                 </div>
 
                 <div style={cardContentStyle}>
                   <p style={cardBrandStyle}>{perfume.brand}</p>
                   <h3 style={cardNameStyle}>{perfume.name}</h3>
-                  <p style={cardCategoryStyle}>{perfume.category}</p>
-                  <p style={cardPriceStyle}>£{perfume.price}</p>
+                  <p style={cardCategoryStyle}>{perfume.category} · {perfume.gender}</p>
 
-                  {/* Match Reasons (Expandable) */}
-                  <button
-                    onClick={() => setExpandedCard(expandedCard === perfume.id ? null : perfume.id)}
-                    style={whyMatchButtonStyle}
-                  >
-                    {expandedCard === perfume.id ? "Hide Details" : "Why This Matched"}
-                    <span style={{
-                      transform: expandedCard === perfume.id ? "rotate(180deg)" : "rotate(0)",
-                      transition: "transform 0.2s ease",
-                      display: "inline-block",
-                      marginLeft: "8px"
-                    }}>
-                      ▼
-                    </span>
-                  </button>
+                  {/* Why recommended */}
+                  <div style={reasonsContainerStyle}>
+                    {getMatchExplanation(perfume.scoreBreakdown, mbtiResult.profile).slice(0, 2).map((reason, i) => (
+                      <span key={i} style={reasonTagStyle}>✓ {reason}</span>
+                    ))}
+                  </div>
 
-                  {expandedCard === perfume.id && (
-                    <div style={matchReasonsStyle}>
-                      {getMatchExplanation(perfume.scoreBreakdown, mbtiResult.profile).map((reason, i) => (
-                        <div key={i} style={matchReasonItemStyle}>
-                          <span style={checkIconStyle}>✓</span>
-                          {reason}
-                        </div>
-                      ))}
-                      <div style={scoreBreakdownStyle}>
-                        <div style={scoreItemStyle}>
-                          <span>MBTI Match</span>
-                          <span>{perfume.scoreBreakdown.mbti} pts</span>
-                        </div>
-                        <div style={scoreItemStyle}>
-                          <span>Scent Family</span>
-                          <span>{perfume.scoreBreakdown.category} pts</span>
-                        </div>
-                        <div style={scoreItemStyle}>
-                          <span>Notes</span>
-                          <span>{perfume.scoreBreakdown.notes} pts</span>
-                        </div>
-                        <div style={scoreItemStyle}>
-                          <span>Personality</span>
-                          <span>{perfume.scoreBreakdown.personality} pts</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <div style={cardActionsStyle}>
-                    <button
-                      onClick={() => handleAddToCart(perfume)}
-                      style={addToCartButtonStyle}
-                    >
+                  <div style={cardFooterStyle}>
+                    <span style={cardPriceStyle}>£{perfume.price}</span>
+                    <button onClick={() => handleAddToCart(perfume)} style={addToCartBtnStyle}>
                       Add to Cart
                     </button>
                   </div>
@@ -259,46 +194,13 @@ const QuizResults = () => {
               </div>
             ))}
           </div>
-        </section>
 
-        {/* Preferred Scent Info */}
-        <section style={{
-          ...preferencesSectionStyle,
-          opacity: isLoaded ? 1 : 0,
-          transform: isLoaded ? "translateY(0)" : "translateY(30px)",
-          transitionDelay: "0.3s"
-        }}>
-          <h2 style={sectionTitleStyle}>Your Scent Preferences</h2>
-          <div style={preferencesGridStyle}>
-            <div style={preferenceCardStyle}>
-              <h4 style={preferenceCardTitleStyle}>Preferred Categories</h4>
-              <div style={preferenceTagsStyle}>
-                {mbtiResult.profile.preferredCategories.map((cat, i) => (
-                  <span key={i} style={categoryTagStyle}>{cat}</span>
-                ))}
-              </div>
-            </div>
-            <div style={preferenceCardStyle}>
-              <h4 style={preferenceCardTitleStyle}>Notes You Love</h4>
-              <div style={preferenceTagsStyle}>
-                {mbtiResult.profile.preferredNotes.slice(0, 6).map((note, i) => (
-                  <span key={i} style={noteTagStyle}>{note}</span>
-                ))}
-              </div>
-            </div>
+          <div style={actionsStyle}>
+            <button onClick={handleRetakeQuiz} style={retakeBtnStyle}>Retake Quiz</button>
+            <Link to="/mood">
+              <button style={moodBtnStyle}>🌸 Try Mood Finder</button>
+            </Link>
           </div>
-        </section>
-
-        {/* Action Buttons */}
-        <div style={actionsContainerStyle}>
-          <button onClick={handleRetakeQuiz} style={retakeButtonStyle}>
-            Retake Quiz
-          </button>
-          <Link to={`/${genderPreference.toLowerCase()}`} style={shopLinkStyle}>
-            <button style={shopButtonStyle}>
-              Shop {genderPreference === "Unisex" ? "All" : genderPreference + "'s"} Fragrances
-            </button>
-          </Link>
         </div>
       </main>
       <Footer />
@@ -307,420 +209,46 @@ const QuizResults = () => {
 };
 
 // Styles
-const mainStyle = {
-  minHeight: "calc(100vh - 200px)",
-  backgroundColor: "#fafafa",
-  padding: "40px 20px 80px"
-};
-
-const loadingStyle = {
-  minHeight: "calc(100vh - 200px)",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: "20px"
-};
-
-const loadingSpinnerStyle = {
-  width: "50px",
-  height: "50px",
-  border: "4px solid #e5e7eb",
-  borderTop: "4px solid #f43f5e",
-  borderRadius: "50%",
-  animation: "spin 1s linear infinite"
-};
-
-const heroSectionStyle = {
-  maxWidth: "800px",
-  margin: "0 auto 60px",
-  textAlign: "center",
-  backgroundColor: "white",
-  borderRadius: "24px",
-  padding: "60px 40px",
-  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-  transition: "opacity 0.5s ease, transform 0.5s ease"
-};
-
-const mbtiTypeContainerStyle = {
-  marginBottom: "30px"
-};
-
-const youAreTextStyle = {
-  fontSize: "1rem",
-  color: "#6b7280",
-  textTransform: "uppercase",
-  letterSpacing: "2px",
-  marginBottom: "12px"
-};
-
-const mbtiTypeStyle = {
-  fontSize: "4.5rem",
-  fontWeight: "800",
-  color: "#111827",
-  letterSpacing: "8px",
-  marginBottom: "8px"
-};
-
-const mbtiNameStyle = {
-  fontSize: "1.5rem",
-  fontWeight: "600",
-  color: "#f43f5e",
-  marginBottom: "0"
-};
-
-const descriptionStyle = {
-  fontSize: "1.1rem",
-  color: "#4b5563",
-  lineHeight: "1.7",
-  maxWidth: "600px",
-  margin: "0 auto 30px"
-};
-
-const fragranceStyleBoxStyle = {
-  backgroundColor: "#f9fafb",
-  borderRadius: "16px",
-  padding: "24px 30px",
-  marginBottom: "30px"
-};
-
-const fragranceStyleTitleStyle = {
-  fontSize: "0.9rem",
-  color: "#6b7280",
-  textTransform: "uppercase",
-  letterSpacing: "1px",
-  marginBottom: "8px"
-};
-
-const fragranceStyleTextStyle = {
-  fontSize: "1.2rem",
-  color: "#111827",
-  fontWeight: "600",
-  margin: "0"
-};
-
-const traitsContainerStyle = {
-  display: "flex",
-  flexWrap: "wrap",
-  justifyContent: "center",
-  gap: "12px",
-  marginBottom: "40px"
-};
-
-const traitTagStyle = {
-  padding: "8px 20px",
-  backgroundColor: "#111827",
-  color: "white",
-  borderRadius: "25px",
-  fontSize: "0.9rem",
-  fontWeight: "500",
-  textTransform: "capitalize"
-};
-
-const dimensionsContainerStyle = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-  gap: "20px",
-  maxWidth: "600px",
-  margin: "0 auto"
-};
-
-const dimensionItemStyle = {
-  display: "flex",
-  alignItems: "center",
-  gap: "12px"
-};
-
-const dimensionLabelStyle = {
-  fontSize: "0.85rem",
-  color: "#374151",
-  fontWeight: "500",
-  minWidth: "90px",
-  textAlign: "left"
-};
-
-const dimensionBarContainerStyle = {
-  flex: "1",
-  height: "8px",
-  backgroundColor: "#e5e7eb",
-  borderRadius: "4px",
-  overflow: "hidden"
-};
-
-const dimensionBarStyle = {
-  height: "100%",
-  backgroundColor: "#f43f5e",
-  borderRadius: "4px",
-  transition: "width 0.8s ease"
-};
-
-const dimensionPercentStyle = {
-  fontSize: "0.85rem",
-  color: "#6b7280",
-  fontWeight: "600",
-  minWidth: "40px",
-  textAlign: "right"
-};
-
-const recommendationsSectionStyle = {
-  maxWidth: "1200px",
-  margin: "0 auto 60px",
-  transition: "opacity 0.5s ease, transform 0.5s ease"
-};
-
-const sectionTitleStyle = {
-  fontSize: "2rem",
-  fontWeight: "700",
-  color: "#111827",
-  textAlign: "center",
-  marginBottom: "12px"
-};
-
-const sectionSubtitleStyle = {
-  fontSize: "1rem",
-  color: "#6b7280",
-  textAlign: "center",
-  marginBottom: "40px"
-};
-
-const recommendationsGridStyle = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-  gap: "24px"
-};
-
-const recommendationCardStyle = {
-  backgroundColor: "white",
-  borderRadius: "20px",
-  overflow: "hidden",
-  boxShadow: "0 4px 15px rgba(0,0,0,0.08)",
-  position: "relative",
-  transition: "transform 0.3s ease, box-shadow 0.3s ease"
-};
-
-const matchBadgeStyle = {
-  position: "absolute",
-  top: "16px",
-  right: "16px",
-  backgroundColor: "#111827",
-  color: "white",
-  padding: "6px 14px",
-  borderRadius: "20px",
-  fontSize: "0.85rem",
-  fontWeight: "600",
-  zIndex: 2
-};
-
-const topPickBadgeStyle = {
-  position: "absolute",
-  top: "16px",
-  left: "16px",
-  backgroundColor: "#f43f5e",
-  color: "white",
-  padding: "6px 14px",
-  borderRadius: "20px",
-  fontSize: "0.85rem",
-  fontWeight: "600",
-  zIndex: 2
-};
-
-const cardImageContainerStyle = {
-  width: "100%",
-  height: "220px",
-  overflow: "hidden"
-};
-
-const cardImageStyle = {
-  width: "100%",
-  height: "100%",
-  objectFit: "cover"
-};
-
-const cardContentStyle = {
-  padding: "24px"
-};
-
-const cardBrandStyle = {
-  fontSize: "0.85rem",
-  color: "#6b7280",
-  textTransform: "uppercase",
-  letterSpacing: "1px",
-  marginBottom: "6px"
-};
-
-const cardNameStyle = {
-  fontSize: "1.3rem",
-  fontWeight: "700",
-  color: "#111827",
-  marginBottom: "8px"
-};
-
-const cardCategoryStyle = {
-  fontSize: "0.9rem",
-  color: "#f43f5e",
-  fontWeight: "600",
-  marginBottom: "8px"
-};
-
-const cardPriceStyle = {
-  fontSize: "1.4rem",
-  fontWeight: "700",
-  color: "#111827",
-  marginBottom: "16px"
-};
-
-const whyMatchButtonStyle = {
-  width: "100%",
-  padding: "10px",
-  backgroundColor: "#f9fafb",
-  border: "1px solid #e5e7eb",
-  borderRadius: "8px",
-  fontSize: "0.9rem",
-  color: "#374151",
-  cursor: "pointer",
-  marginBottom: "16px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center"
-};
-
-const matchReasonsStyle = {
-  backgroundColor: "#f9fafb",
-  borderRadius: "12px",
-  padding: "16px",
-  marginBottom: "16px"
-};
-
-const matchReasonItemStyle = {
-  display: "flex",
-  alignItems: "center",
-  gap: "10px",
-  fontSize: "0.9rem",
-  color: "#374151",
-  marginBottom: "8px"
-};
-
-const checkIconStyle = {
-  color: "#10b981",
-  fontWeight: "bold"
-};
-
-const scoreBreakdownStyle = {
-  marginTop: "16px",
-  paddingTop: "12px",
-  borderTop: "1px solid #e5e7eb"
-};
-
-const scoreItemStyle = {
-  display: "flex",
-  justifyContent: "space-between",
-  fontSize: "0.85rem",
-  color: "#6b7280",
-  marginBottom: "4px"
-};
-
-const cardActionsStyle = {
-  display: "flex",
-  gap: "12px"
-};
-
-const addToCartButtonStyle = {
-  flex: "1",
-  padding: "14px",
-  backgroundColor: "#111827",
-  color: "white",
-  border: "none",
-  borderRadius: "10px",
-  fontSize: "1rem",
-  fontWeight: "600",
-  cursor: "pointer",
-  transition: "background-color 0.2s ease"
-};
-
-const preferencesSectionStyle = {
-  maxWidth: "800px",
-  margin: "0 auto 60px",
-  transition: "opacity 0.5s ease, transform 0.5s ease"
-};
-
-const preferencesGridStyle = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-  gap: "24px"
-};
-
-const preferenceCardStyle = {
-  backgroundColor: "white",
-  borderRadius: "16px",
-  padding: "24px",
-  boxShadow: "0 4px 15px rgba(0,0,0,0.08)"
-};
-
-const preferenceCardTitleStyle = {
-  fontSize: "1rem",
-  color: "#6b7280",
-  marginBottom: "16px",
-  fontWeight: "600"
-};
-
-const preferenceTagsStyle = {
-  display: "flex",
-  flexWrap: "wrap",
-  gap: "10px"
-};
-
-const categoryTagStyle = {
-  padding: "8px 16px",
-  backgroundColor: "#f43f5e",
-  color: "white",
-  borderRadius: "20px",
-  fontSize: "0.9rem",
-  fontWeight: "500"
-};
-
-const noteTagStyle = {
-  padding: "8px 16px",
-  backgroundColor: "#f3f4f6",
-  color: "#374151",
-  borderRadius: "20px",
-  fontSize: "0.9rem",
-  fontWeight: "500",
-  textTransform: "capitalize"
-};
-
-const actionsContainerStyle = {
-  display: "flex",
-  justifyContent: "center",
-  gap: "16px",
-  flexWrap: "wrap"
-};
-
-const retakeButtonStyle = {
-  padding: "16px 36px",
-  backgroundColor: "white",
-  color: "#111827",
-  border: "2px solid #111827",
-  borderRadius: "12px",
-  fontSize: "1rem",
-  fontWeight: "600",
-  cursor: "pointer",
-  transition: "all 0.2s ease"
-};
-
-const shopLinkStyle = {
-  textDecoration: "none"
-};
-
-const shopButtonStyle = {
-  padding: "16px 36px",
-  backgroundColor: "#111827",
-  color: "white",
-  border: "none",
-  borderRadius: "12px",
-  fontSize: "1rem",
-  fontWeight: "600",
-  cursor: "pointer",
-  transition: "all 0.2s ease"
-};
+const mainStyle = { minHeight: "calc(100vh - 200px)", backgroundColor: "#faf8f5", padding: "40px 20px", display: "flex", flexDirection: "column", alignItems: "center" };
+const loadingStyle = { minHeight: "60vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "16px" };
+const loadingSpinnerStyle = { width: "40px", height: "40px", border: "3px solid #e5e7eb", borderTop: "3px solid #c9a84c", borderRadius: "50%", animation: "spin 0.8s linear infinite" };
+const savedBannerStyle = { width: "100%", maxWidth: "800px", backgroundColor: "#dcfce7", color: "#166534", padding: "12px 20px", borderRadius: "12px", fontSize: "0.9rem", fontWeight: "600", marginBottom: "20px", textAlign: "center", border: "1px solid #bbf7d0" };
+const heroSectionStyle = { width: "100%", maxWidth: "800px", backgroundColor: "white", borderRadius: "24px", padding: "50px 40px", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", marginBottom: "40px", textAlign: "center", transition: "opacity 0.5s ease, transform 0.5s ease" };
+const mbtiTypeContainerStyle = { marginBottom: "24px" };
+const youAreTextStyle = { color: "#c9a84c", fontSize: "0.85rem", fontWeight: "600", letterSpacing: "2px", textTransform: "uppercase", marginBottom: "12px" };
+const mbtiTypeStyle = { fontFamily: "'Playfair Display', serif", fontSize: "4rem", fontWeight: "700", color: "#111827", marginBottom: "8px" };
+const mbtiNameStyle = { fontFamily: "'Playfair Display', serif", fontSize: "1.5rem", color: "#6b7280", fontWeight: "400" };
+const descriptionStyle = { color: "#374151", fontSize: "1rem", lineHeight: "1.7", marginBottom: "24px", maxWidth: "600px", margin: "0 auto 24px" };
+const fragranceStyleBoxStyle = { backgroundColor: "#faf8f5", borderRadius: "12px", padding: "16px 24px", marginBottom: "24px", border: "1px solid #f3f4f6" };
+const fragranceStyleLabelStyle = { color: "#c9a84c", fontSize: "0.8rem", fontWeight: "600", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "6px" };
+const fragranceStyleTextStyle = { color: "#374151", fontSize: "0.95rem", fontStyle: "italic", margin: 0 };
+const traitsContainerStyle = { display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center", marginBottom: "32px" };
+const traitTagStyle = { backgroundColor: "#111827", color: "#c9a84c", padding: "6px 16px", borderRadius: "20px", fontSize: "0.85rem", fontWeight: "600" };
+const dimensionsContainerStyle = { display: "flex", flexDirection: "column", gap: "12px", maxWidth: "500px", margin: "0 auto" };
+const dimensionRowStyle = { display: "flex", alignItems: "center", gap: "12px" };
+const dimensionLabelStyle = { fontSize: "0.85rem", color: "#6b7280", minWidth: "120px", textAlign: "right" };
+const dimensionBarContainerStyle = { flex: 1, height: "8px", backgroundColor: "#f3f4f6", borderRadius: "4px", overflow: "hidden" };
+const dimensionBarStyle = { height: "100%", background: "linear-gradient(135deg, #c9a84c, #a07830)", borderRadius: "4px", transition: "width 0.8s ease" };
+const dimensionPercentStyle = { fontSize: "0.82rem", color: "#9ca3af", minWidth: "36px" };
+const recommendationsSectionStyle = { width: "100%", maxWidth: "1100px" };
+const recTitleStyle = { fontFamily: "'Playfair Display', serif", fontSize: "2rem", fontWeight: "700", color: "#111827", textAlign: "center", marginBottom: "8px" };
+const recSubtitleStyle = { color: "#6b7280", textAlign: "center", marginBottom: "40px", fontSize: "0.95rem" };
+const perfumeGridStyle = { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "24px", marginBottom: "40px" };
+const perfumeCardStyle = { backgroundColor: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.07)", border: "1px solid #f3f4f6" };
+const imageWrapperStyle = { position: "relative" };
+const perfumeImageStyle = { width: "100%", height: "220px", objectFit: "cover" };
+const matchBadgeStyle = { position: "absolute", top: "12px", right: "12px", background: "linear-gradient(135deg, #c9a84c, #a07830)", color: "white", padding: "4px 12px", borderRadius: "20px", fontSize: "0.8rem", fontWeight: "700" };
+const cardContentStyle = { padding: "18px 20px" };
+const cardBrandStyle = { color: "#c9a84c", fontSize: "0.75rem", fontWeight: "600", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "4px" };
+const cardNameStyle = { fontFamily: "'Playfair Display', serif", fontSize: "1.1rem", fontWeight: "700", color: "#111827", marginBottom: "4px" };
+const cardCategoryStyle = { color: "#9ca3af", fontSize: "0.85rem", marginBottom: "12px" };
+const reasonsContainerStyle = { display: "flex", flexDirection: "column", gap: "4px", marginBottom: "16px" };
+const reasonTagStyle = { color: "#166534", fontSize: "0.8rem", backgroundColor: "#dcfce7", padding: "4px 10px", borderRadius: "8px", fontWeight: "500" };
+const cardFooterStyle = { display: "flex", justifyContent: "space-between", alignItems: "center" };
+const cardPriceStyle = { fontFamily: "'Playfair Display', serif", fontWeight: "700", fontSize: "1.1rem", color: "#111827" };
+const addToCartBtnStyle = { padding: "9px 16px", border: "none", borderRadius: "10px", background: "linear-gradient(135deg, #c9a84c, #a07830)", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.85rem" };
+const actionsStyle = { display: "flex", justifyContent: "center", gap: "16px", paddingTop: "20px", borderTop: "1px solid #f3f4f6" };
+const retakeBtnStyle = { padding: "14px 32px", border: "2px solid #e5e7eb", borderRadius: "25px", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: "pointer", fontSize: "0.95rem" };
+const moodBtnStyle = { padding: "14px 32px", border: "none", borderRadius: "25px", background: "linear-gradient(135deg, #f43f5e, #e11d48)", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.95rem" };
 
 export default QuizResults;
