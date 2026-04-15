@@ -44,7 +44,9 @@ const Navbar = ({ loggedIn, userName, onLogout }) => {
                   {cartCount > 0 && <span style={cartBadgeStyle}>{cartCount}</span>}
                 </div>
               </Link>
-              <span style={{ color: "#c9a84c", fontWeight: "600", fontSize: "0.9rem" }}>Hi, {userName}</span>
+              <Link to="/profile" style={{ textDecoration: "none" }}>
+                <span style={{ color: "#c9a84c", fontWeight: "600", fontSize: "0.9rem" }}>Hi, {userName}</span>
+              </Link>
               <button onClick={onLogout} style={logoutBtnStyle}>Logout</button>
             </>
           ) : (

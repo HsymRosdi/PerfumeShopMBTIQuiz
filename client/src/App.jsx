@@ -10,6 +10,9 @@ import Receipt from "./pages/Receipt";
 import Quiz from "./pages/Quiz";
 import QuizResults from "./pages/QuizResults";
 import Mood from "./pages/Mood";
+import AdminDashboard from "./admin/dashboard";
+import AdminLogin from "./admin/login";
+import Profile from "./pages/Profile";
 
 function App() {
   return (
@@ -25,6 +28,9 @@ function App() {
       <Route path="/quiz" element={<Quiz />} />
       <Route path="/quiz/results" element={<QuizResults />} />
       <Route path="/mood" element={<Mood />} />
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin/dashboard" element={<AdminDashboard />} />
+      <Route path="/profile" element={<Profile />} />
     </Routes>
   );
 }
