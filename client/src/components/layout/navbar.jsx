@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { useCart } from "../context/CartContext";
+import { useCart } from "../cart/CartContext";
 
 const Navbar = ({ loggedIn, userName, onLogout }) => {
   const { cartCount } = useCart();

@@ -4,9 +4,9 @@ import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import { logoutUser } from "../services/authService";
-import Navbar from "../components/navbar";
-import Footer from "../components/footer";
-import { useCart } from "../context/CartContext";
+import Navbar from "../components/layout/navbar";
+import Footer from "../components/layout/footer";
+import { useCart } from "../components/cart/CartContext";
 import perfumes from "../data/perfume";
 import { calculateMbtiType, getQuizRecommendations, getMatchExplanation } from "../utils/quizRecommendation";
 

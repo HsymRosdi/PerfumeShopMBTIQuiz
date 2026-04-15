@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useCart } from "../context/CartContext";
+import { useCart } from "../cart/CartContext";
 import SimilarPerfumes from "./SimilarPerfumes";
 
 const QuickViewModal = ({ perfume, onClose }) => {

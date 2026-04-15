@@ -4,8 +4,8 @@ import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import { logoutUser } from "../services/authService";
-import Navbar from "../components/navbar";
-import Footer from "../components/footer";
+import Navbar from "../components/layout/navbar";
+import Footer from "../components/layout/footer";
 
 const Profile = () => {
   const navigate = useNavigate();

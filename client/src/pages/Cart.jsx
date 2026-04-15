@@ -1,6 +1,6 @@
-import Navbar from "../components/navbar";
-import Footer from "../components/footer";
-import { useCart } from "../context/CartContext";
+import Navbar from "../components/layout/navbar";
+import Footer from "../components/layout/footer";
+import { useCart } from "../components/cart/CartContext";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";

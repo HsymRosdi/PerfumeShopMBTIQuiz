@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useCart } from "../context/CartContext";
+import { useCart } from "../cart/CartContext";
 
 const PerfumeCard = ({ perfume, onQuickView }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -11,7 +11,7 @@ const PerfumeCard = ({ perfume, onQuickView }) => {
         ...cardStyle,
         transform: isHovered ? "translateY(-6px)" : "translateY(0)",
         boxShadow: isHovered
-          ? "0 20px 40px rgba(0,0,0,0.15)"
+          ? "0 20px 40px rgba(0, 0, 0, 0.15)"
           : "0 4px 16px rgba(0,0,0,0.07)",
       }}
       onMouseEnter={() => setIsHovered(true)}
