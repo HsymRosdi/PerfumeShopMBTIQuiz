@@ -10,9 +10,10 @@ import Receipt from "./pages/Receipt";
 import Quiz from "./pages/Quiz";
 import QuizResults from "./pages/QuizResults";
 import Mood from "./pages/Mood";
+import Profile from "./pages/Profile";
 import AdminDashboard from "./admin/dashboard";
 import AdminLogin from "./admin/login";
-import Profile from "./pages/Profile";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -23,14 +24,16 @@ function App() {
       <Route path="/men" element={<Men />} />
       <Route path="/women" element={<Women />} />
       <Route path="/unisex" element={<Unisex />} />
-      <Route path="/cart" element={<Cart />} />
       <Route path="/receipt" element={<Receipt />} />
-      <Route path="/quiz" element={<Quiz />} />
-      <Route path="/quiz/results" element={<QuizResults />} />
-      <Route path="/mood" element={<Mood />} />
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
-      <Route path="/profile" element={<Profile />} />
+
+      {/* Protected Routes — login required */}
+      <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+      <Route path="/quiz" element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
+      <Route path="/quiz/results" element={<ProtectedRoute><QuizResults /></ProtectedRoute>} />
+      <Route path="/mood" element={<ProtectedRoute><Mood /></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
     </Routes>
   );
 }
