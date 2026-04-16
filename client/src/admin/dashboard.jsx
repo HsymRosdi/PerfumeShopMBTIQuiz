@@ -14,20 +14,13 @@ const AdminDashboard = () => {
   const [adminName, setAdminName] = useState("");
   const [orders, setOrders] = useState([]);
   const [users, setUsers] = useState([]);
+  const [ratings, setRatings] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Auth check — only admin can access
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        navigate("/admin/login");
-        return;
-      }
-      if (user.email !== ADMIN_EMAIL) {
-        alert("Access denied. Admins only.");
-        navigate("/");
-        return;
-      }
+      if (!user) { navigate("/admin/login"); return; }
+      if (user.email !== ADMIN_EMAIL) { alert("Access denied. Admins only."); navigate("/"); return; }
       setAdminName(user.email);
       fetchData();
     });
@@ -36,15 +29,14 @@ const AdminDashboard = () => {
 
   const fetchData = async () => {
     try {
-      // Fetch orders
       const ordersSnap = await getDocs(collection(db, "orders"));
-      const ordersData = ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setOrders(ordersData);
+      setOrders(ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
 
-      // Fetch users
       const usersSnap = await getDocs(collection(db, "users"));
-      const usersData = usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setUsers(usersData);
+      setUsers(usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+
+      const ratingsSnap = await getDocs(collection(db, "ratings"));
+      setRatings(ratingsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     } catch (err) {
       console.error("Error fetching data:", err);
     } finally {
@@ -52,12 +44,13 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleLogout = async () => {
-    await logoutUser();
-    navigate("/login");
-  };
+  const handleLogout = async () => { await logoutUser(); navigate("/admin/login"); };
 
   const totalRevenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+
+  const avgRating = ratings.length > 0
+    ? (ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length).toFixed(1)
+    : "—";
 
   const formatDate = (timestamp) => {
     if (!timestamp) return "—";
@@ -88,8 +81,25 @@ const AdminDashboard = () => {
     );
   }
 
+  const navItems = [
+    { id: "dashboard", icon: "📊", label: "Dashboard" },
+    { id: "orders", icon: "📦", label: "Orders" },
+    { id: "users", icon: "👥", label: "Users" },
+    { id: "perfumes", icon: "🧴", label: "Perfumes" },
+    { id: "ratings", icon: "⭐", label: "Ratings" },
+  ];
+
+  const pageTitles = {
+    dashboard: ["Dashboard", "Welcome back, Admin"],
+    orders: ["Orders", orders.length + " total orders"],
+    users: ["Users", users.length + " registered users"],
+    perfumes: ["Perfumes", perfumes.length + " perfumes in catalogue"],
+    ratings: ["Ratings", ratings.length + " total ratings"],
+  };
+
   return (
     <div style={layoutStyle}>
+
       {/* Sidebar */}
       <aside style={sidebarStyle}>
         <div style={logoSectionStyle}>
@@ -101,12 +111,7 @@ const AdminDashboard = () => {
         </div>
 
         <nav style={{ display: "flex", flexDirection: "column", gap: "4px", flex: 1 }}>
-          {[
-            { id: "dashboard", icon: "📊", label: "Dashboard" },
-            { id: "orders", icon: "📦", label: "Orders" },
-            { id: "users", icon: "👥", label: "Users" },
-            { id: "perfumes", icon: "🧴", label: "Perfumes" },
-          ].map(({ id, icon, label }) => (
+          {navItems.map(({ id, icon, label }) => (
             <button
               key={id}
               onClick={() => setActiveTab(id)}
@@ -130,23 +135,14 @@ const AdminDashboard = () => {
         </div>
       </aside>
 
-      {/* Main Content */}
+      {/* Main */}
       <main style={mainStyle}>
+
         {/* Top Bar */}
         <div style={topBarStyle}>
           <div>
-            <h1 style={pageTitleStyle}>
-              {activeTab === "dashboard" && "Dashboard"}
-              {activeTab === "orders" && "Orders"}
-              {activeTab === "users" && "Users"}
-              {activeTab === "perfumes" && "Perfumes"}
-            </h1>
-            <p style={pageSubStyle}>
-              {activeTab === "dashboard" && "Welcome back, Admin"}
-              {activeTab === "orders" && `${orders.length} total orders`}
-              {activeTab === "users" && `${users.length} registered users`}
-              {activeTab === "perfumes" && `${perfumes.length} perfumes in catalogue`}
-            </p>
+            <h1 style={pageTitleStyle}>{pageTitles[activeTab][0]}</h1>
+            <p style={pageSubStyle}>{pageTitles[activeTab][1]}</p>
           </div>
           <div style={adminBadgeStyle}>Admin</div>
         </div>
@@ -154,13 +150,12 @@ const AdminDashboard = () => {
         {/* Dashboard Tab */}
         {activeTab === "dashboard" && (
           <>
-            {/* Stats Cards */}
             <div style={statsGridStyle}>
               {[
                 { label: "Total Orders", value: orders.length, sub: "All time" },
                 { label: "Total Users", value: users.length, sub: "Registered" },
-                { label: "Revenue", value: `£${totalRevenue.toFixed(2)}`, sub: "All time" },
-                { label: "Perfumes", value: perfumes.length, sub: "In catalogue" },
+                { label: "Revenue", value: "£" + totalRevenue.toFixed(2), sub: "All time" },
+                { label: "Avg Rating", value: avgRating, sub: ratings.length + " ratings" },
               ].map(({ label, value, sub }) => (
                 <div key={label} style={statCardStyle}>
                   <div style={statLabelStyle}>{label}</div>
@@ -170,7 +165,6 @@ const AdminDashboard = () => {
               ))}
             </div>
 
-            {/* Recent Orders + Recent Users */}
             <div style={grid2Style}>
               <div style={cardStyle}>
                 <h3 style={cardTitleStyle}>Recent Orders</h3>
@@ -195,7 +189,11 @@ const AdminDashboard = () => {
                       </tr>
                     ))}
                     {orders.length === 0 && (
-                      <tr><td colSpan={3} style={{ ...tdStyle, color: "#9ca3af", textAlign: "center" }}>No orders yet</td></tr>
+                      <tr>
+                        <td colSpan={3} style={{ ...tdStyle, color: "#9ca3af", textAlign: "center" }}>
+                          No orders yet
+                        </td>
+                      </tr>
                     )}
                   </tbody>
                 </table>
@@ -245,7 +243,7 @@ const AdminDashboard = () => {
                       <td style={tdStyle}>{order.customerName || "—"}</td>
                       <td style={{ ...tdStyle, color: "#6b7280", fontSize: "12px" }}>{order.customerEmail || "—"}</td>
                       <td style={{ ...tdStyle, color: "#6b7280", fontSize: "12px" }}>
-                        {order.items?.map(i => `${i.name} x${i.quantity}`).join(", ") || "—"}
+                        {order.items?.map(i => i.name + " x" + i.quantity).join(", ") || "—"}
                       </td>
                       <td style={tdStyle}>£{order.total || 0}</td>
                       <td style={{ ...tdStyle, color: "#6b7280", fontSize: "12px" }}>{formatDate(order.createdAt)}</td>
@@ -257,7 +255,11 @@ const AdminDashboard = () => {
                     </tr>
                   ))}
                   {orders.length === 0 && (
-                    <tr><td colSpan={7} style={{ ...tdStyle, color: "#9ca3af", textAlign: "center" }}>No orders yet</td></tr>
+                    <tr>
+                      <td colSpan={7} style={{ ...tdStyle, color: "#9ca3af", textAlign: "center" }}>
+                        No orders yet
+                      </td>
+                    </tr>
                   )}
                 </tbody>
               </table>
@@ -274,7 +276,7 @@ const AdminDashboard = () => {
                 <tr>
                   <th style={thStyle}>Name</th>
                   <th style={thStyle}>Email</th>
-                  <th style={thStyle}>User ID</th>
+                  <th style={thStyle}>MBTI Type</th>
                   <th style={thStyle}>Joined</th>
                 </tr>
               </thead>
@@ -288,12 +290,22 @@ const AdminDashboard = () => {
                       </div>
                     </td>
                     <td style={{ ...tdStyle, color: "#6b7280" }}>{user.email}</td>
-                    <td style={{ ...tdStyle, fontSize: "11px", color: "#9ca3af" }}>{user.uid?.slice(0, 12)}...</td>
+                    <td style={tdStyle}>
+                      {user.mbtiType ? (
+                        <span style={{ ...badgeStyle, backgroundColor: "#fef3c7", color: "#92400e" }}>
+                          {user.mbtiType}
+                        </span>
+                      ) : "—"}
+                    </td>
                     <td style={{ ...tdStyle, color: "#6b7280" }}>{formatDate(user.createdAt)}</td>
                   </tr>
                 ))}
                 {users.length === 0 && (
-                  <tr><td colSpan={4} style={{ ...tdStyle, color: "#9ca3af", textAlign: "center" }}>No users yet</td></tr>
+                  <tr>
+                    <td colSpan={4} style={{ ...tdStyle, color: "#9ca3af", textAlign: "center" }}>
+                      No users yet
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>
@@ -344,12 +356,65 @@ const AdminDashboard = () => {
             </table>
           </div>
         )}
+
+        {/* Ratings Tab */}
+        {activeTab === "ratings" && (
+          <div style={cardStyle}>
+            <h3 style={cardTitleStyle}>All Ratings</h3>
+            <table style={tableStyle}>
+              <thead>
+                <tr>
+                  <th style={thStyle}>Perfume</th>
+                  <th style={thStyle}>Rating</th>
+                  <th style={thStyle}>Source</th>
+                  <th style={thStyle}>MBTI</th>
+                  <th style={thStyle}>Mood</th>
+                  <th style={thStyle}>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ratings.map(r => (
+                  <tr key={r.id}>
+                    <td style={tdStyle}>{r.perfumeName}</td>
+                    <td style={tdStyle}>
+                      <span style={{ color: "#c9a84c", fontWeight: "700", fontSize: "14px" }}>
+                        {"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}
+                      </span>
+                      <span style={{ color: "#9ca3af", fontSize: "12px", marginLeft: "6px" }}>
+                        {r.rating}/5
+                      </span>
+                    </td>
+                    <td style={tdStyle}>
+                      <span style={{
+                        ...badgeStyle,
+                        backgroundColor: r.source === "quiz" ? "#dbeafe" : "#fce7f3",
+                        color: r.source === "quiz" ? "#1e40af" : "#9d174d",
+                      }}>
+                        {r.source}
+                      </span>
+                    </td>
+                    <td style={{ ...tdStyle, color: "#6b7280" }}>{r.mbtiType || "—"}</td>
+                    <td style={{ ...tdStyle, color: "#6b7280", textTransform: "capitalize" }}>{r.moodSelected || "—"}</td>
+                    <td style={{ ...tdStyle, color: "#6b7280", fontSize: "12px" }}>{formatDate(r.createdAt)}</td>
+                  </tr>
+                ))}
+                {ratings.length === 0 && (
+                  <tr>
+                    <td colSpan={6} style={{ ...tdStyle, color: "#9ca3af", textAlign: "center" }}>
+                      No ratings yet
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
       </main>
     </div>
   );
 };
 
-// Styles
 const layoutStyle = { display: "flex", minHeight: "100vh", fontFamily: "'Inter', sans-serif" };
 const sidebarStyle = { width: "220px", backgroundColor: "#0a0a0a", display: "flex", flexDirection: "column", padding: "24px 0", position: "fixed", top: 0, left: 0, bottom: 0, zIndex: 100 };
 const logoSectionStyle = { display: "flex", alignItems: "center", gap: "12px", padding: "0 20px 24px", borderBottom: "1px solid #1f2937", marginBottom: "12px" };

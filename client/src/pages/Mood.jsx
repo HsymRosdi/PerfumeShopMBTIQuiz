@@ -8,6 +8,8 @@ import Navbar from "../components/layout/navbar";
 import Footer from "../components/layout/footer";
 import perfumes from "../data/perfume";
 import { useCart } from "../components/cart/CartContext";
+import StarRating from "../components/ui/StarRating";
+import { saveRating } from "../services/ratingService";
 
 // ─── Mood Definitions ───────────────────────────────────────────────────────
 const moods = [
@@ -242,6 +244,21 @@ const Mood = () => {
     }, 300);
   };
 
+
+  const handleRate = async (perfumeId, perfumeName, rating) => {
+    const user = auth.currentUser;
+    if (!user) return;
+    await saveRating({
+      userId: user.uid,
+      perfumeId,
+      perfumeName,
+      rating,
+      source: "mood",
+      mbtiType: mbtiType || null,
+      moodSelected: selectedMood?.id || null,
+    });
+  };
+
   return (
     <>
       <Navbar loggedIn={loggedIn} userName={userName} onLogout={handleLogout} />
@@ -337,6 +354,12 @@ const Mood = () => {
                       <p style={priceStyle}>£{perfume.price}</p>
                       <button onClick={() => addToCart(perfume, 1)} style={addCartBtnStyle}>Add to Cart</button>
                     </div>
+                    <StarRating
+                      perfumeId={perfume.id}
+                      perfumeName={perfume.name}
+                      onRate={handleRate}
+                      size="small"
+                    />
                   </div>
                 </div>
               )) : (
