@@ -44,7 +44,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleLogout = async () => { await logoutUser(); navigate("/admin/login"); };
+  const handleLogout = async () => { await logoutUser(); navigate("/login"); };
 
   const totalRevenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
 

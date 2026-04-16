@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { loginUser } from "../services/authService";
 
+const ADMIN_EMAIL = "admin@perfumeshop.com"; // change this to your admin email
+
 const Login = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -18,7 +20,13 @@ const Login = () => {
     try {
       setLoading(true);
       await loginUser(email, password);
-      navigate("/");
+
+      // Check if admin → redirect to admin dashboard
+      if (email === ADMIN_EMAIL) {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/");
+      }
     } catch { setError("Invalid email or password."); }
     finally { setLoading(false); }
   };
@@ -74,7 +82,7 @@ const Login = () => {
   );
 };
 
-const pageStyle = { minHeight: "100vh", display: "flex" };
+const pageStyle = { minHeight: "100vh", display: "flex", fontFamily: "'Inter', sans-serif" };
 const leftPanelStyle = { flex: 1, background: "linear-gradient(135deg, #0a0a0a 0%, #1a1208 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: "60px 48px" };
 const leftContentStyle = { maxWidth: "420px" };
 const leftLogoStyle = { display: "flex", alignItems: "center", gap: "12px", marginBottom: "40px" };
@@ -88,7 +96,7 @@ const cardStyle = { width: "100%", maxWidth: "420px", backgroundColor: "white", 
 const titleStyle = { fontFamily: "'Playfair Display', serif", fontSize: "2rem", fontWeight: "700", textAlign: "center", color: "#111827", marginBottom: "8px" };
 const subtitleStyle = { textAlign: "center", color: "#6b7280", marginBottom: "32px", fontSize: "0.95rem" };
 const labelStyle = { display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "0.9rem", color: "#374151" };
-const inputStyle = { width: "100%", padding: "14px 16px", borderRadius: "12px", border: "1.5px solid #e5e7eb", outline: "none", fontSize: "1rem", boxSizing: "border-box", marginBottom: "20px", fontFamily: "'Inter', sans-serif", transition: "border 0.2s" };
+const inputStyle = { width: "100%", padding: "14px 16px", borderRadius: "12px", border: "1.5px solid #e5e7eb", outline: "none", fontSize: "1rem", boxSizing: "border-box", marginBottom: "20px", fontFamily: "'Inter', sans-serif" };
 const errorStyle = { color: "#dc2626", marginBottom: "12px", fontSize: "0.9rem" };
 const submitBtnStyle = { width: "100%", padding: "15px", border: "none", borderRadius: "12px", background: "linear-gradient(135deg, #c9a84c, #a07830)", color: "white", fontSize: "1rem", fontWeight: "700", cursor: "pointer", marginTop: "4px", boxShadow: "0 6px 20px rgba(201,168,76,0.3)" };
 const dividerStyle = { display: "flex", alignItems: "center", margin: "24px 0", gap: "12px" };
