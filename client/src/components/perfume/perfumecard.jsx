@@ -31,7 +31,7 @@ const PerfumeCard = ({ perfume, onQuickView, avgRating }) => {
         {isHovered && (
           <div style={overlayStyle}>
             <button style={quickViewBtnStyle} onClick={() => onQuickView && onQuickView(perfume)}>
-              Quick View
+              Details
             </button>
             <button style={addCartBtnStyle} onClick={() => addToCart(perfume, 1)}>
               + Add to Cart
