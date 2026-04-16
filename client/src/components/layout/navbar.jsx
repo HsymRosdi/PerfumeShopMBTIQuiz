@@ -1,10 +1,17 @@
 import { Link, useLocation } from "react-router-dom";
 import { useCart } from "../cart/CartContext";
+import { useState } from "react";
+import LogoutModal from "../ui/LogoutModal";
 
 const Navbar = ({ loggedIn, userName, onLogout }) => {
   const { cartCount } = useCart();
   const location = useLocation();
   const isActive = (path) => location.pathname === path;
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  const handleLogoutClick = () => setShowLogoutModal(true);
+  const handleConfirmLogout = () => { setShowLogoutModal(false); onLogout(); };
+  const handleCancelLogout = () => setShowLogoutModal(false);
 
   return (
     <>
@@ -20,19 +27,28 @@ const Navbar = ({ loggedIn, userName, onLogout }) => {
             <span style={{ fontSize: "2rem" }}>🌸</span>
             <div>
               <div style={logoTitleStyle}>The Perfume Shop</div>
-              <div style={logoTaglineStyle}>Luxury Fragrances</div>
+              <div style={logoSubStyle}>Luxury Fragrances</div>
             </div>
           </div>
         </Link>
 
         <nav style={navStyle}>
-          {[{ path: "/", label: "Home" }, { path: "/men", label: "Men" }, { path: "/women", label: "Women" }, { path: "/unisex", label: "Unisex" }].map(({ path, label }) => (
+          {[
+            { path: "/", label: "Home" },
+            { path: "/men", label: "Men" },
+            { path: "/women", label: "Women" },
+            { path: "/unisex", label: "Unisex" },
+          ].map(({ path, label }) => (
             <Link key={path} to={path} style={{ ...navLinkStyle, color: isActive(path) ? "#c9a84c" : "white", borderBottom: isActive(path) ? "2px solid #c9a84c" : "2px solid transparent" }}>
               {label}
             </Link>
           ))}
-          <Link to="/quiz" style={{ ...pillBtnStyle, background: "linear-gradient(135deg, #c9a84c, #a07830)" }}>🧠 Quiz</Link>
-          <Link to="/mood" style={{ ...pillBtnStyle, background: "linear-gradient(135deg, #f43f5e, #e11d48)" }}>🌸 Mood</Link>
+          <Link to="/quiz" style={{ ...pillBtnStyle, background: isActive("/quiz") ? "linear-gradient(135deg, #e8c97a, #c9a84c)" : "linear-gradient(135deg, #c9a84c, #a07830)" }}>
+            🧠 Quiz
+          </Link>
+          <Link to="/mood" style={{ ...pillBtnStyle, background: isActive("/mood") ? "linear-gradient(135deg, #fda4af, #f43f5e)" : "linear-gradient(135deg, #f43f5e, #e11d48)" }}>
+            🌸 Mood
+          </Link>
         </nav>
 
         <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
@@ -47,7 +63,7 @@ const Navbar = ({ loggedIn, userName, onLogout }) => {
               <Link to="/profile" style={{ textDecoration: "none" }}>
                 <span style={{ color: "#c9a84c", fontWeight: "600", fontSize: "0.9rem" }}>Hi, {userName}</span>
               </Link>
-              <button onClick={onLogout} style={logoutBtnStyle}>Logout</button>
+              <button onClick={handleLogoutClick} style={logoutBtnStyle}>Logout</button>
             </>
           ) : (
             <>
@@ -57,6 +73,14 @@ const Navbar = ({ loggedIn, userName, onLogout }) => {
           )}
         </div>
       </header>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <LogoutModal
+          onConfirm={handleConfirmLogout}
+          onCancel={handleCancelLogout}
+        />
+      )}
     </>
   );
 };
@@ -66,7 +90,7 @@ const topBarTextStyle = { color: "#111827", fontSize: "0.82rem", fontWeight: "60
 const headerStyle = { backgroundColor: "#0a0a0a", color: "white", padding: "18px 48px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px", boxShadow: "0 2px 20px rgba(0,0,0,0.4)", position: "sticky", top: 0, zIndex: 1000 };
 const logoStyle = { display: "flex", alignItems: "center", gap: "12px" };
 const logoTitleStyle = { fontFamily: "'Playfair Display', serif", fontSize: "1.4rem", fontWeight: "700", color: "#c9a84c", lineHeight: "1.2" };
-const logoTaglineStyle = { fontSize: "0.7rem", color: "#9ca3af", letterSpacing: "2px", textTransform: "uppercase" };
+const logoSubStyle = { fontSize: "0.7rem", color: "#9ca3af", letterSpacing: "2px", textTransform: "uppercase" };
 const navStyle = { display: "flex", gap: "8px", alignItems: "center" };
 const navLinkStyle = { textDecoration: "none", fontWeight: "500", fontSize: "0.95rem", padding: "6px 12px", borderRadius: "6px", transition: "all 0.2s ease" };
 const pillBtnStyle = { color: "white", textDecoration: "none", fontWeight: "700", fontSize: "0.9rem", padding: "9px 18px", borderRadius: "25px", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" };
