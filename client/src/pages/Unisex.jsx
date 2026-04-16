@@ -9,6 +9,7 @@ import Navbar from "../components/layout/navbar";
 import Footer from "../components/layout/footer";
 import PerfumeCard from "../components/perfume/perfumecard";
 import QuickViewModal from "../components/perfume/quickView";
+import useRatings from "../hooks/useRatings";
 
 const Unisex = () => {
   const [userName, setUserName] = useState("");
@@ -16,6 +17,7 @@ const Unisex = () => {
   const [selectedPerfume, setSelectedPerfume] = useState(null);
   const [filter, setFilter] = useState("All");
   const navigate = useNavigate();
+  const { ratingsMap } = useRatings();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -33,6 +35,10 @@ const Unisex = () => {
   const handleLogout = async () => { try { await logoutUser(); navigate("/"); } catch {} };
 
   const basePerfumes = perfumes.filter(p => p.gender === "Unisex");
+  const pageTitle = "Unisex Fragrances";
+  const pageSubtitle = "Boundary-free scents crafted for everyone";
+  const accentColor = "#c9a84c";
+
   const categories = ["All", ...new Set(basePerfumes.map(p => p.category))];
   const filtered = filter === "All" ? basePerfumes : basePerfumes.filter(p => p.category === filter);
 
@@ -40,12 +46,12 @@ const Unisex = () => {
     <div style={{ minHeight: "100vh", background: "#faf8f5" }}>
       <Navbar loggedIn={loggedIn} userName={userName} onLogout={handleLogout} />
 
-      <section style={pageHeaderStyle}>
+      <section style={{ ...pageHeaderStyle, background: "linear-gradient(135deg, #0a0a0a, #1a1208)" }}>
         <div style={pageHeaderOverlayStyle} />
         <div style={{ position: "relative", textAlign: "center" }}>
-          <p style={eyebrowStyle}>The Collection</p>
-          <h1 style={pageTitleStyle}>Unisex Fragrances</h1>
-          <p style={pageSubtitleStyle}>Boundary-free scents crafted for everyone</p>
+          <p style={{ ...eyebrowStyle, color: accentColor }}>The Collection</p>
+          <h1 style={pageTitleStyle}>{pageTitle}</h1>
+          <p style={pageSubtitleStyle}>{pageSubtitle}</p>
         </div>
       </section>
 
@@ -64,7 +70,12 @@ const Unisex = () => {
       <section style={sectionStyle}>
         <div style={gridStyle}>
           {filtered.map(perfume => (
-            <PerfumeCard key={perfume.id} perfume={perfume} onQuickView={setSelectedPerfume} />
+            <PerfumeCard
+              key={perfume.id}
+              perfume={perfume}
+              onQuickView={setSelectedPerfume}
+              avgRating={ratingsMap[perfume.id] || null}
+            />
           ))}
         </div>
       </section>
@@ -75,9 +86,9 @@ const Unisex = () => {
   );
 };
 
-const pageHeaderStyle = { position: "relative", background: "linear-gradient(135deg, #0a0a0a, #0a1218)", padding: "80px 48px", overflow: "hidden" };
+const pageHeaderStyle = { position: "relative", padding: "80px 48px", overflow: "hidden" };
 const pageHeaderOverlayStyle = { position: "absolute", inset: 0, background: "radial-gradient(ellipse at center, rgba(201,168,76,0.1) 0%, transparent 70%)" };
-const eyebrowStyle = { color: "#c9a84c", fontSize: "0.85rem", fontWeight: "600", letterSpacing: "3px", textTransform: "uppercase", marginBottom: "12px" };
+const eyebrowStyle = { fontSize: "0.85rem", fontWeight: "600", letterSpacing: "3px", textTransform: "uppercase", marginBottom: "12px" };
 const pageTitleStyle = { fontFamily: "'Playfair Display', serif", fontSize: "3rem", fontWeight: "700", color: "white", marginBottom: "12px" };
 const pageSubtitleStyle = { color: "#9ca3af", fontSize: "1.05rem" };
 const filterBarStyle = { backgroundColor: "white", padding: "20px 48px", display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap", borderBottom: "1px solid #f3f4f6", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" };

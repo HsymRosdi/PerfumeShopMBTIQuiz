@@ -9,6 +9,8 @@ import Footer from "../components/layout/footer";
 import { useCart } from "../components/cart/CartContext";
 import perfumes from "../data/perfume";
 import { calculateMbtiType, getQuizRecommendations, getMatchExplanation } from "../utils/quizRecommendation";
+import StarRating from "../components/ui/StarRating";
+import { saveRating } from "../services/ratingService";
 
 const QuizResults = () => {
   const location = useLocation();
@@ -86,6 +88,21 @@ const QuizResults = () => {
 
   const handleAddToCart = (perfume) => addToCart(perfume, 1);
   const handleRetakeQuiz = () => navigate("/quiz");
+
+
+  const handleRate = async (perfumeId, perfumeName, rating) => {
+    const user = auth.currentUser;
+    if (!user) return;
+    await saveRating({
+      userId: user.uid,
+      perfumeId,
+      perfumeName,
+      rating,
+      source: "quiz",
+      mbtiType: mbtiResult?.type || null,
+      moodSelected: null,
+    });
+  };
 
   if (!mbtiResult) {
     return (
@@ -190,6 +207,12 @@ const QuizResults = () => {
                       Add to Cart
                     </button>
                   </div>
+                  <StarRating
+                    perfumeId={perfume.id}
+                    perfumeName={perfume.name}
+                    onRate={handleRate}
+                    size="small"
+                  />
                 </div>
               </div>
             ))}
