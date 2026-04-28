@@ -24,7 +24,7 @@ const Navbar = ({ loggedIn, userName, onLogout }) => {
       <header style={headerStyle}>
         <Link to="/" style={{ textDecoration: "none" }}>
           <div style={logoStyle}>
-            <span style={{ fontSize: "2rem" }}>🌸</span>
+            <span style={{ fontSize: "2rem" }}>✨</span>
             <div>
               <div style={logoTitleStyle}>The Perfume Shop</div>
               <div style={logoSubStyle}>Luxury Fragrances</div>

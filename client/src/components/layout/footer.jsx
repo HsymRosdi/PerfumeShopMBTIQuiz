@@ -7,7 +7,7 @@ const Footer = () => {
         {/* Brand */}
         <div style={brandColStyle}>
           <div style={footerLogoStyle}>
-            <span style={{ fontSize: "1.8rem" }}>🌸</span>
+            <span style={{ fontSize: "1.8rem" }}>✨</span>
             <span style={footerLogoTextStyle}>The Perfume Shop</span>
           </div>
           <p style={footerDescStyle}>
@@ -44,7 +44,7 @@ const Footer = () => {
 
       <div style={bottomStyle}>
         <p style={copyrightStyle}>© 2026 The Perfume Shop. All rights reserved.</p>
-        <p style={madeByStyle}>Made with 🌸 for FYP</p>
+        
       </div>
     </footer>
   );
