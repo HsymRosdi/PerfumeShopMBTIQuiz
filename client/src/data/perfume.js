@@ -1,6 +1,15 @@
-import sauvageImg from "../assets/perfumeImages/sauvage.jpg";
-import tomImg from "../assets/perfumeImages/tomford.jpg";
-import libreImg from "../assets/perfumeImages/libre.jpg";
+import sauvage from "../assets/perfumeImages/sauvage.jpg";
+import tom from "../assets/perfumeImages/tomford.jpg";
+import libre from "../assets/perfumeImages/libre.jpg";
+import Blue from "../assets/perfumeImages/bleu.jpg";
+import aqua from "../assets/perfumeImages/aqua.jpg";
+import versace from "../assets/perfumeImages/versace.jpg";
+import cocomadem from "../assets/perfumeImages/cocomadem.jpg";
+import missdior from "../assets/perfumeImages/missdior.jpg";
+import blackop from "../assets/perfumeImages/blackop.jpg";
+import ck from "../assets/perfumeImages/ck.jpg";
+import mm from "../assets/perfumeImages/mm.jpg";
+import jom from "../assets/perfumeImages/jom.jpg";
 
 const perfumes = [
   // =========================
@@ -25,7 +34,7 @@ const perfumes = [
     gender: "Male",
     price: 89,
     priceTier: "mid",
-    image: sauvageImg,
+    image: sauvage,
     description: "A fresh and spicy fragrance for confident personalities."
   },
   {
@@ -47,7 +56,7 @@ const perfumes = [
     gender: "Male",
     price: 95,
     priceTier: "mid",
-    image: sauvageImg,
+    image: Blue,
     description: "A sophisticated woody fragrance with a clean character."
   },
   {
@@ -69,7 +78,7 @@ const perfumes = [
     gender: "Male",
     price: 85,
     priceTier: "mid",
-    image: sauvageImg,
+    image: aqua,
     description: "A crisp aquatic scent for a fresh and energetic lifestyle."
   },
   {
@@ -91,7 +100,7 @@ const perfumes = [
     gender: "Male",
     price: 88,
     priceTier: "mid",
-    image: sauvageImg,
+    image: versace,
     description: "A sweet and seductive fragrance for bold personalities."
   },
 
@@ -117,7 +126,7 @@ const perfumes = [
     gender: "Female",
     price: 92,
     priceTier: "mid",
-    image: libreImg,
+    image: libre,
     description: "A bold floral fragrance with a modern feminine touch."
   },
   {
@@ -139,7 +148,7 @@ const perfumes = [
     gender: "Female",
     price: 98,
     priceTier: "mid",
-    image: sauvageImg,
+    image: cocomadem,
     description: "A timeless floral fragrance with elegance and charm."
   },
   {
@@ -161,7 +170,7 @@ const perfumes = [
     gender: "Female",
     price: 94,
     priceTier: "mid",
-    image: sauvageImg,
+    image: missdior,
     description: "A delicate floral scent for soft and romantic personalities."
   },
   {
@@ -183,7 +192,7 @@ const perfumes = [
     gender: "Female",
     price: 96,
     priceTier: "mid",
-    image: sauvageImg,
+    image: blackop,
     description: "A bold oriental fragrance with a dark and stylish edge."
   },
 
@@ -209,7 +218,7 @@ const perfumes = [
     gender: "Unisex",
     price: 55,
     priceTier: "budget",
-    image: tomImg,
+    image: ck,
     description: "A clean and refreshing unisex fragrance for easygoing personalities."
   },
   {
@@ -231,7 +240,7 @@ const perfumes = [
     gender: "Unisex",
     price: 145,
     priceTier: "premium",
-    image: sauvageImg,
+    image: tom,
     description: "A luxurious citrus scent with a fresh Mediterranean feel."
   },
   {
@@ -253,7 +262,7 @@ const perfumes = [
     gender: "Unisex",
     price: 110,
     priceTier: "premium",
-    image: sauvageImg,
+    image: mm,
     description: "A soft and clean scent perfect for calm and relaxed personalities."
   },
   {
@@ -275,7 +284,7 @@ const perfumes = [
     gender: "Unisex",
     price: 105,
     priceTier: "premium",
-    image: sauvageImg,
+    image: jom,
     description: "A fresh and airy scent inspired by nature and simplicity."
   }
 ];

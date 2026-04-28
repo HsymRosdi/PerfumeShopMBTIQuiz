@@ -44,7 +44,7 @@ const Home = () => {
         <div style={heroContentStyle}>
           <p style={heroEyebrowStyle}>✦ Luxury Fragrances</p>
           <h1 style={heroTitleStyle}>Discover Your<br />Perfect Scent</h1>
-          <p style={heroSubtitleStyle}>Find perfumes that match your personality, mood, and style — curated just for you.</p>
+          <p style={heroSubtitleStyle}>Find perfumes that match your personality, mood, and style curated just for you.</p>
           <div style={heroBtnsStyle}>
             <Link to="/quiz"><button style={heroPrimaryBtnStyle}>🧠 Take the MBTI Quiz</button></Link>
             <Link to="/mood"><button style={heroSecondaryBtnStyle}>🌸 Find by Mood</button></Link>
