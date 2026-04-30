@@ -120,8 +120,8 @@ export const quizQuestions = [
     dimension: "SN",
     question: "When solving a problem, you are more interested in...",
     options: [
-      { value: "S", label: "The facts — what, when, and how" },
-      { value: "N", label: "The meaning — why it happened and what it implies" }
+      { value: "S", label: "The facts - what, when, and how" },
+      { value: "N", label: "The meaning - why it happened and what it implies" }
     ]
   },
 
@@ -192,7 +192,7 @@ export const quizQuestions = [
     question: "Your personal space is usually...",
     options: [
       { value: "J", label: "Organised and tidy" },
-      { value: "P", label: "Relaxed — things end up wherever they land" }
+      { value: "P", label: "Relaxed - things end up wherever they land" }
     ]
   },
   {
